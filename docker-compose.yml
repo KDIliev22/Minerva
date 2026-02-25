@@ -1,0 +1,59 @@
+version: '3.8'
+
+networks:
+  minerva-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  node1:
+    build: .
+    container_name: minerva-node1
+    networks:
+      minerva-net:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "4567:4567"
+      - "4568:4568"
+      - "6881:6881/udp"
+    environment:
+      - API_PORT=4567
+      - SEARCH_PORT=4568
+      - DHT_PORT=6881
+      - LIBRARY_DIR=/data/library
+      - TORRENT_DIR=/data/torrents
+      - DOWNLOADS_DIR=/data/downloads
+      - ALBUM_ART_DIR=/data/album_art
+      - DHT_BOOTSTRAP_NODES=172.20.0.11:6881
+      - LISTEN_INTERFACE=0.0.0.0:6881
+    volumes:
+      - node1_data:/data
+
+  node2:
+    build: .
+    container_name: minerva-node2
+    networks:
+      minerva-net:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "4577:4567"
+      - "4578:4568"
+      - "6882:6881/udp"
+    environment:
+      - API_PORT=4567
+      - SEARCH_PORT=4568
+      - DHT_PORT=6881
+      - LIBRARY_DIR=/data/library
+      - TORRENT_DIR=/data/torrents
+      - DOWNLOADS_DIR=/data/downloads
+      - ALBUM_ART_DIR=/data/album_art
+      - DHT_BOOTSTRAP_NODES=172.20.0.10:6881
+      - LISTEN_INTERFACE=0.0.0.0:6881
+    volumes:
+      - node2_data:/data
+
+volumes:
+  node1_data:
+  node2_data:

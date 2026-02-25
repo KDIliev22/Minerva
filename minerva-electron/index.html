@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minerva · P2P Music</title>
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!-- Base styles -->
+  <link rel="stylesheet" href="css/base/reset.css">
+  <link rel="stylesheet" href="css/base/variables.css">
+  <link rel="stylesheet" href="css/base/typography.css">
+
+  <!-- Layout -->
+  <link rel="stylesheet" href="css/layout/app.css">
+  <link rel="stylesheet" href="css/layout/sidebar.css">
+  <link rel="stylesheet" href="css/layout/main-content.css">
+  <link rel="stylesheet" href="css/layout/player-bar.css">
+
+  <!-- Components -->
+  <link rel="stylesheet" href="css/components/discover.css">
+  <link rel="stylesheet" href="css/components/downloads.css">
+  <link rel="stylesheet" href="css/album-detail.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/track-list.css">
+  <link rel="stylesheet" href="css/components/playlist.css">
+  <link rel="stylesheet" href="css/components/library.css">
+  <link rel="stylesheet" href="css/components/home.css">
+  <link rel="stylesheet" href="css/components/modals.css">
+  <link rel="stylesheet" href="css/components/icons.css">
+  <link rel="stylesheet" href="css/components/settings.css">
+
+  <!-- Utilities -->
+  <link rel="stylesheet" href="css/utils/scrollbar.css">
+  <link rel="stylesheet" href="css/utils/utilities.css">
+
+  <!-- Responsive -->
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="assets/minervalogo.png" alt="Minerva" class="logo-img">
+      </div>
+      <nav class="nav">
+  <button class="nav-item active" data-view="home">
+    <i data-feather="home"></i> Home
+  </button>
+  <button class="nav-item" data-view="search">
+    <i data-feather="search"></i> Search
+  </button>
+  <button class="nav-item" data-view="library">
+    <i data-feather="book-open"></i> Your Library
+  </button>
+  <button class="nav-item" data-view="upload" id="uploadNavBtn">
+    <i data-feather="upload"></i> Upload
+  </button>
+  <button class="nav-item" data-view="downloads">
+    <i data-feather="download"></i> Downloads
+  </button>
+  <!-- New Discover button -->
+  <button class="nav-item" data-view="discover">
+    <i data-feather="globe"></i> Discover
+  </button>
+  <!-- Optional: remove or keep Settings if still needed -->
+  <button class="nav-item" data-view="settings">
+    <i data-feather="settings"></i> Settings
+  </button>
+</nav>
+      <div class="playlists">
+        <h3>PLAYLISTS</h3>
+        <ul></ul> <!-- populated by js/playlist.js -->
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="Search artists, albums, tracks...">
+          <button id="searchBtn">
+            <i data-feather="search"></i> Search
+          </button>
+        </div>
+        <div class="user-avatar"></div>
+      </header>
+
+      <div class="content" id="content">
+        <!-- Dynamic content loaded by JS -->
+      </div>
+    </main>
+
+    <!-- Player Bar -->
+    <footer class="player-bar">
+      <div class="now-playing">
+        <img class="album-art" src="" alt="album art">
+        <div class="track-info">
+          <div class="track-title">Not Playing</div>
+          <div class="track-artist">—</div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <div class="control-buttons">
+          <button class="control-btn" id="prevBtn">
+            <i data-feather="skip-back"></i>
+          </button>
+          <button class="control-btn play-btn" id="playPauseBtn">
+            <i data-feather="play"></i>
+          </button>
+          <button class="control-btn" id="nextBtn">
+            <i data-feather="skip-forward"></i>
+          </button>
+        </div>
+        <div class="progress-container">
+          <span class="time current" id="currentTime">0:00</span>
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+          </div>
+          <span class="time total" id="totalTime">0:00</span>
+        </div>
+      </div>
+      <div class="volume-control">
+        <button id="volumeBtn">
+          <i data-feather="volume-2"></i>
+        </button>
+        <input type="range" id="volumeSlider" min="0" max="100" value="70">
+      </div>
+    </footer>
+  </div>
+
+  <!-- Audio element for playback -->
+  <audio id="audioPlayer" preload="none"></audio>
+
+  <!-- Initial icon replacement -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+    });
+  </script>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

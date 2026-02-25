@@ -1,0 +1,16 @@
+export const audio = document.getElementById('audioPlayer');
+export const playPauseBtn = document.getElementById('playPauseBtn');
+export const progressFill = document.getElementById('progressFill');
+export const currentTimeSpan = document.getElementById('currentTime');
+export const totalTimeSpan = document.getElementById('totalTime');
+export const volumeSlider = document.getElementById('volumeSlider');
+export const searchInput = document.getElementById('searchInput');
+export const searchBtn = document.getElementById('searchBtn');
+export const contentDiv = document.getElementById('content');
+export const uploadBtn = document.getElementById('uploadNavBtn');
+export const nowPlayingImg = document.querySelector('.now-playing .album-art');
+export const nowPlayingTitle = document.querySelector('.now-playing .track-title');
+export const nowPlayingArtist = document.querySelector('.now-playing .track-artist');
+export const playlistsContainer = document.querySelector('.playlists ul');
+export const playlistsHeader = document.querySelector('.playlists h3');
+export const volumeControl = document.querySelector('.volume-control');

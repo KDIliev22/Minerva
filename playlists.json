@@ -1,0 +1,33 @@
+[ {
+  "id" : 1,
+  "name" : "Liked Songs",
+  "description" : "Your favorite tracks",
+  "iconPath" : null,
+  "createdAt" : "2026-02-24 23:48:25",
+  "tracks" : [ ],
+  "system" : true,
+  "createdAtString" : "2026-02-24 23:48:25",
+  "isSystem" : true
+}, {
+  "id" : 2,
+  "name" : "HuzzPull3000",
+  "description" : "green fn",
+  "iconPath" : null,
+  "createdAt" : "2026-02-25 05:12:39",
+  "tracks" : [ {
+    "position" : 1,
+    "addedAt" : "2026-02-25 05:12:48",
+    "trackId" : "c6aeb52b227c5a1b569d110b631be4a87b006311_2"
+  }, {
+    "position" : 2,
+    "addedAt" : "2026-02-25 05:12:55",
+    "trackId" : "c6aeb52b227c5a1b569d110b631be4a87b006311_11"
+  }, {
+    "position" : 3,
+    "addedAt" : "2026-02-25 05:13:06",
+    "trackId" : "e18dad16195e41971b212bff8d0c3034eec47139_13"
+  } ],
+  "system" : false,
+  "createdAtString" : "2026-02-25 05:12:39",
+  "isSystem" : false
+} ]

@@ -1,0 +1,181 @@
+/* Downloads tab styles */
+.downloads-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.downloads-header h2 {
+  color: var(--text-primary, #fff);
+  font-size: 24px;
+  font-weight: 700;
+}
+.dl-action-btn {
+  background: var(--bg-tertiary, #282828);
+  border: none;
+  color: var(--text-secondary, #b3b3b3);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dl-action-btn:hover {
+  color: var(--text-primary, #fff);
+  background: var(--bg-elevated, #333);
+}
+
+/* Stats bar */
+.downloads-stats {
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary, #282828);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.dl-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.dl-stat-val {
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+  font-weight: 600;
+}
+.dl-stat-label {
+  color: var(--text-muted, #535353);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Download list */
+.downloads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dl-loading, .dl-empty, .dl-error {
+  color: var(--text-secondary, #b3b3b3);
+  padding: 40px 0;
+  text-align: center;
+}
+.dl-error { color: #e74c3c; }
+
+/* Individual download item */
+.dl-item {
+  background: var(--bg-tertiary, #282828);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: background 0.2s;
+  border-left: 3px solid transparent;
+}
+.dl-item:hover {
+  background: var(--bg-elevated, #333);
+}
+.dl-item.state-downloading { border-left-color: #3498db; }
+.dl-item.state-seeding { border-left-color: #2ecc71; }
+.dl-item.state-paused { border-left-color: #f39c12; }
+.dl-item.state-checking { border-left-color: #9b59b6; }
+
+.dl-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.dl-name {
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: 8px;
+}
+.dl-controls {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dl-ctrl-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #b3b3b3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.dl-ctrl-btn:hover {
+  background: var(--bg-tertiary, #282828);
+  color: var(--text-primary, #fff);
+}
+.dl-remove-btn:hover {
+  color: #e74c3c;
+}
+
+/* Progress bar */
+.dl-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.dl-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary, #121212);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.dl-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  background: var(--accent, #b9093a);
+}
+.dl-progress-fill.state-downloading { background: #3498db; }
+.dl-progress-fill.state-seeding { background: #2ecc71; }
+.dl-progress-fill.state-paused { background: #f39c12; }
+.dl-progress-fill.state-checking { background: #9b59b6; }
+.dl-pct {
+  color: var(--text-secondary, #b3b3b3);
+  font-size: 12px;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Details row */
+.dl-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dl-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-primary, #121212);
+}
+.dl-badge.state-downloading { color: #3498db; }
+.dl-badge.state-seeding { color: #2ecc71; }
+.dl-badge.state-paused { color: #f39c12; }
+.dl-badge.state-checking { color: #9b59b6; }
+.dl-badge.state-other { color: var(--text-secondary, #b3b3b3); }
+
+.dl-size, .dl-speed, .dl-peers {
+  color: var(--text-muted, #535353);
+  font-size: 12px;
+}
+.dl-speed { color: var(--text-secondary, #b3b3b3); }

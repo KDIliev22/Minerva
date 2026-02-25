@@ -1,0 +1,105 @@
+.home-header {
+  margin-bottom: 30px;
+}
+
+.home-header h1 {
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.home-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #535353 #282828;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+  background: #282828;
+  border-radius: 4px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #535353;
+  border-radius: 4px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b3b3b3;
+}
+
+/* ----- Card container – enforce fixed dimensions ----- */
+.album-card {
+  flex: 0 0 180px;                /* fixed width, no shrinking/growing */
+  width: 180px;                    /* explicit width (backup) */
+  background: #181818;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;          /* include padding in width/height */
+  display: flex;
+  flex-direction: column;          /* stack children vertically */
+}
+
+.album-card:hover {
+  background-color: #282828;
+}
+
+/* ----- Image container – force square aspect ratio ----- */
+.album-card-cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;             /* ensures square */
+  object-fit: cover;               /* crops image to fit square */
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: #2a2a2a;       /* fallback background while loading */
+  display: block;                   /* remove extra space below image */
+}
+
+/* ----- Text container – consistent spacing and no overflow ----- */
+.album-card-info {
+  text-align: left;
+  flex: 1;                          /* take remaining space, but don't push */
+  min-height: 60px;                 /* reserve space for two lines of text */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;                         /* consistent spacing between title/artist */
+}
+
+.album-card-title {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;                 /* consistent line height */
+}
+
+.album-card-artist {
+  color: #b3b3b3;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}

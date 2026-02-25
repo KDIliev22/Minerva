@@ -1,0 +1,79 @@
+@media screen and (max-width: 1024px) {
+  .album-detail-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  .album-detail-left {
+    flex: 0 0 auto;
+    width: 200px;
+  }
+  .album-detail-info {
+    text-align: center;
+  }
+  .album-detail-info h2 {
+    font-size: 28px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .app {
+    grid-template-columns: 70px 1fr;
+  }
+  .sidebar {
+    padding: 10px 5px;
+  }
+  .logo-text,
+  .playlists h3,
+  .playlists li,
+  .nav-item span:not(.emoji) {
+    display: none;
+  }
+  .nav-item {
+    text-align: center;
+    padding: 10px 0;
+    font-size: 20px;
+  }
+  .playlists {
+    display: none;
+  }
+  .track-item {
+    grid-template-columns: 30px 1fr 1fr 60px;
+  }
+  .track-duration {
+    display: none;
+  }
+  .album-detail-left {
+    width: 180px;
+  }
+  .album-card {
+    flex: 0 0 140px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .app {
+    grid-template-columns: 0 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+  .player-bar {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    padding: 10px;
+    height: auto;
+  }
+  .now-playing {
+    justify-content: center;
+  }
+  .player-controls {
+    order: 2;
+  }
+  .volume-control {
+    order: 3;
+    justify-content: center;
+  }
+  .album-card {
+    flex: 0 0 120px;
+  }
+}

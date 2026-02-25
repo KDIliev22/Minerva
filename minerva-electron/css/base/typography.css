@@ -1,0 +1,39 @@
+h1 {
+  font-size: var(--fs-xxxl);
+  font-weight: bold;
+  margin-bottom: var(--sp-lg);
+}
+
+h2 {
+  font-size: var(--fs-xxl);
+  font-weight: bold;
+  margin-bottom: var(--sp-md);
+}
+
+h3 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin-bottom: var(--sp-sm);
+}
+
+p {
+  margin-bottom: var(--sp-sm);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

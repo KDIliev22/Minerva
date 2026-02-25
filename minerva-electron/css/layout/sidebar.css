@@ -1,0 +1,113 @@
+.sidebar {
+  background-color: #000;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo-img {
+  height: 50px;           /* adjust to match your design */
+  width: auto;            /* maintain aspect ratio */
+  max-width: 100%;        /* ensure it doesn’t overflow on small screens */
+  object-fit: contain;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center; /* ensures icon and text are vertically centered */
+  gap: 12px;           /* consistent spacing between icon and text */
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  text-align: left;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;      /* prevent extra line height from affecting alignment */
+}
+
+.nav-item:hover {
+  background-color: #282828;
+  color: #fff;
+}
+
+.nav-item i {
+  font-size: 18px;     /* ensure icons are consistent */
+  width: 20px;         /* fixed width to align text */
+  text-align: center;
+}
+
+.nav-item.active {
+  background-color: #b9093a;
+  color: #fff;
+}
+
+.playlists h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #b3b3b3;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.playlists ul {
+  list-style: none;
+  color: #b3b3b3;
+  font-size: 14px;
+}
+
+.playlists li {
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.playlists li:hover {
+  color: #fff;
+}
+
+#createPlaylistBtn {
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+  height: 20px;
+}
+
+.playlists ul li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b3b3b3;
+  font-size: 14px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.playlists ul li i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}

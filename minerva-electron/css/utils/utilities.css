@@ -1,0 +1,45 @@
+/* Layout utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-xs { gap: var(--sp-xs); }
+.gap-sm { gap: var(--sp-sm); }
+.gap-md { gap: var(--sp-md); }
+.gap-lg { gap: var(--sp-lg); }
+
+/* Spacing utilities */
+.m-0 { margin: 0; }
+.mt-auto { margin-top: auto; }
+.mb-sm { margin-bottom: var(--sp-sm); }
+.mb-md { margin-bottom: var(--sp-md); }
+.mb-lg { margin-bottom: var(--sp-lg); }
+
+.p-sm { padding: var(--sp-sm); }
+.p-md { padding: var(--sp-md); }
+.p-lg { padding: var(--sp-lg); }
+
+/* Width/Height */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+/* Text */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Borders */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Hover effects */
+.hover-bg-tertiary:hover {
+  background-color: var(--bg-tertiary);
+}

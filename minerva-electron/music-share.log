@@ -1,0 +1,92 @@
+2026-02-25 10:02:49 INFO  [main] c.minerva.network.JLibTorrentManager - Detected local address for BT: 10.113.223.200
+2026-02-25 10:02:49 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peer.lan.LocalServiceDiscoveryModule
+2026-02-25 10:02:49 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peerexchange.PeerExchangeModule
+2026-02-25 10:02:49 INFO  [main] bt.runtime.BtRuntimeBuilder - Overriding auto-loaded module bt.dht.DHTModule
+2026-02-25 10:02:49 INFO  [main] bt.runtime.BtRuntimeBuilder - Auto-loading module bt.tracker.http.HttpTrackerModule with default configuration
+2026-02-25 10:02:49 WARN  [main] b.s.ClasspathApplicationService - Failed to determine version from manifest file -- application may be configured incorrectly
+2026-02-25 10:02:49 INFO  [main] b.n.p.impl.PortMappingInitializer - Mapping application's acceptor port on startup.
+2026-02-25 10:02:49 INFO  [main] c.minerva.network.JLibTorrentManager - BT runtime started (pure-Java). Listen port: 6881
+2026-02-25 17:15:25 INFO  [main] c.minerva.network.JLibTorrentManager - Detected local address for BT: 10.113.223.200
+2026-02-25 17:15:25 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peerexchange.PeerExchangeModule
+2026-02-25 17:15:25 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peer.lan.LocalServiceDiscoveryModule
+2026-02-25 17:15:25 INFO  [main] bt.runtime.BtRuntimeBuilder - Overriding auto-loaded module bt.dht.DHTModule
+2026-02-25 17:15:25 INFO  [main] bt.runtime.BtRuntimeBuilder - Auto-loading module bt.tracker.http.HttpTrackerModule with default configuration
+2026-02-25 17:15:25 WARN  [main] b.s.ClasspathApplicationService - Failed to determine version from manifest file -- application may be configured incorrectly
+2026-02-25 17:15:25 INFO  [main] b.n.p.impl.PortMappingInitializer - Mapping application's acceptor port on startup.
+2026-02-25 17:15:25 INFO  [main] c.minerva.network.JLibTorrentManager - BT runtime started (pure-Java). Listen port: 6881
+2026-02-25 17:15:34 INFO  [main] c.minerva.network.JLibTorrentManager - No UPnP gateway found – port 6881 not mapped (manual forwarding may be needed)
+2026-02-25 17:15:34 ERROR [main] com.minerva.backend.BackendServer - Failed to start keyword search server
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.Net.bind(Net.java:511)
+	at java.base/sun.nio.ch.NioSocketImpl.bind(NioSocketImpl.java:641)
+	at java.base/java.net.ServerSocket.bind(ServerSocket.java:326)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:222)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:138)
+	at com.minerva.dht.KeywordSearchServer.start(KeywordSearchServer.java:34)
+	at com.minerva.backend.BackendServer.<init>(BackendServer.java:108)
+	at com.minerva.MainApp.main(MainApp.java:15)
+2026-02-25 17:15:34 INFO  [main] com.minerva.dht.DHTKeywordManager - Known Minerva peers: []
+2026-02-25 17:15:34 INFO  [main] com.minerva.library.LibraryManager - Loaded 0 tracks from metadata
+2026-02-25 17:15:34 INFO  [main] com.minerva.backend.BackendServer - Waiting for DHT bootstrap before announcing keywords...
+2026-02-25 17:15:39 INFO  [main] com.minerva.backend.BackendServer - Keyword announcement complete.
+2026-02-25 17:15:39 INFO  [main] com.minerva.library.LibraryManager - Seeding existing torrents...
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - 
+       __                      __ _            __ __
+      / /____ _ _   __ ____ _ / /(_)____      / // /
+ __  / // __ `/| | / // __ `// // // __ \    / // /_
+/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
+\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
+
+          https://javalin.io/documentation
+
+2026-02-25 17:15:39 INFO  [main] org.eclipse.jetty.util.log - Logging initialized @14821ms to org.eclipse.jetty.util.log.Slf4jLog
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - Starting Javalin ...
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - You are running Javalin 4.6.8 (released May 4, 2023. Your Javalin version is 1028 days old. Consider checking for a newer version.).
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - Loom is available, using Virtual ThreadPool... Neat!
+2026-02-25 17:15:39 ERROR [main] io.javalin.Javalin - Failed to start Javalin
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - Stopping Javalin ...
+2026-02-25 17:15:39 INFO  [main] io.javalin.Javalin - Javalin has stopped
+2026-02-25 17:24:45 INFO  [main] c.minerva.network.JLibTorrentManager - Detected local address for BT: 192.168.1.239
+2026-02-25 17:24:45 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peerexchange.PeerExchangeModule
+2026-02-25 17:24:45 INFO  [main] bt.runtime.BtRuntimeBuilder - Loading standard extension module bt.peer.lan.LocalServiceDiscoveryModule
+2026-02-25 17:24:45 INFO  [main] bt.runtime.BtRuntimeBuilder - Overriding auto-loaded module bt.dht.DHTModule
+2026-02-25 17:24:45 INFO  [main] bt.runtime.BtRuntimeBuilder - Auto-loading module bt.tracker.http.HttpTrackerModule with default configuration
+2026-02-25 17:24:45 WARN  [main] b.s.ClasspathApplicationService - Failed to determine version from manifest file -- application may be configured incorrectly
+2026-02-25 17:24:45 INFO  [main] b.n.p.impl.PortMappingInitializer - Mapping application's acceptor port on startup.
+2026-02-25 17:24:45 INFO  [main] c.minerva.network.JLibTorrentManager - BT runtime started (pure-Java). Listen port: 6881
+2026-02-25 17:24:45 WARN  [main] c.minerva.network.JLibTorrentManager - UPnP gateway found (Xiaomi Mi Mini Wireless Router) but port mapping failed
+2026-02-25 17:24:45 ERROR [main] com.minerva.backend.BackendServer - Failed to start keyword search server
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.Net.bind(Net.java:511)
+	at java.base/sun.nio.ch.NioSocketImpl.bind(NioSocketImpl.java:641)
+	at java.base/java.net.ServerSocket.bind(ServerSocket.java:326)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:222)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:138)
+	at com.minerva.dht.KeywordSearchServer.start(KeywordSearchServer.java:34)
+	at com.minerva.backend.BackendServer.<init>(BackendServer.java:108)
+	at com.minerva.MainApp.main(MainApp.java:15)
+2026-02-25 17:24:45 INFO  [main] com.minerva.dht.DHTKeywordManager - Known Minerva peers: []
+2026-02-25 17:24:45 INFO  [main] com.minerva.library.LibraryManager - Loaded 0 tracks from metadata
+2026-02-25 17:24:45 INFO  [main] com.minerva.backend.BackendServer - Waiting for DHT bootstrap before announcing keywords...
+2026-02-25 17:24:50 INFO  [main] com.minerva.backend.BackendServer - Keyword announcement complete.
+2026-02-25 17:24:50 INFO  [main] com.minerva.library.LibraryManager - Seeding existing torrents...
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - 
+       __                      __ _            __ __
+      / /____ _ _   __ ____ _ / /(_)____      / // /
+ __  / // __ `/| | / // __ `// // // __ \    / // /_
+/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
+\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
+
+          https://javalin.io/documentation
+
+2026-02-25 17:24:50 INFO  [main] org.eclipse.jetty.util.log - Logging initialized @5781ms to org.eclipse.jetty.util.log.Slf4jLog
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - Starting Javalin ...
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - You are running Javalin 4.6.8 (released May 4, 2023. Your Javalin version is 1028 days old. Consider checking for a newer version.).
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - Loom is available, using Virtual ThreadPool... Neat!
+2026-02-25 17:24:50 ERROR [main] io.javalin.Javalin - Failed to start Javalin
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - Stopping Javalin ...
+2026-02-25 17:24:50 INFO  [main] io.javalin.Javalin - Javalin has stopped

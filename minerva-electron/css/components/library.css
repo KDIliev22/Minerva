@@ -1,0 +1,64 @@
+.library-header {
+  margin-bottom: 30px;
+}
+
+.library-header h2 {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.album-grid-item {
+  background: #181818;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.album-grid-item:hover {
+  background-color: #282828;
+}
+
+.album-cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.album-info {
+  text-align: left;
+}
+
+.album-title {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-artist {
+  color: #b3b3b3;
+  font-size: 14px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-track-count {
+  color: #b3b3b3;
+  font-size: 12px;
+}

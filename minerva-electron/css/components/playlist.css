@@ -1,0 +1,64 @@
+.playlist-header {
+  display: flex;
+  gap: var(--sp-lg);
+  align-items: center;
+  margin-bottom: var(--sp-xl);
+}
+
+.playlist-header img {
+  width: var(--cover-lg);
+  height: var(--cover-lg);
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.playlist-header h2 {
+  font-size: var(--fs-xxxl);
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: var(--sp-xs);
+}
+
+.playlist-header p {
+  color: var(--text-secondary);
+  font-size: var(--fs-md);
+  margin-bottom: var(--sp-md);
+}
+
+#editPlaylistBtn,
+#deletePlaylistBtn {
+  background: transparent;
+  border: 1px solid var(--text-secondary);
+  color: var(--text-primary);
+  padding: var(--sp-sm) var(--sp-md);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  transition: all var(--transition);
+}
+
+#editPlaylistBtn i,
+#deletePlaylistBtn i {
+  font-size: var(--fs-md);
+}
+
+#editPlaylistBtn:hover {
+  background-color: var(--text-secondary);
+  color: var(--bg-primary);
+  border-color: var(--text-secondary);
+}
+
+#deletePlaylistBtn {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+#deletePlaylistBtn:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
