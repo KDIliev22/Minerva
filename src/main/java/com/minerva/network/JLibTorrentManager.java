@@ -199,6 +199,7 @@ public class JLibTorrentManager {
 
         logger.info("BT runtime started. Listen port: {}", listenPort);
 
+        logger.info("Before UPnP port mapping block");
         // UPnP port mapping
         try {
             GatewayDiscover discover = new GatewayDiscover();
@@ -213,6 +214,7 @@ public class JLibTorrentManager {
         } catch (Exception e) {
             logger.warn("UPnP failed: {}", e.getMessage());
         }
+        logger.info("After UPnP port mapping block");
     }
 
     // ────────────────────── Discovery ──────────────────────
