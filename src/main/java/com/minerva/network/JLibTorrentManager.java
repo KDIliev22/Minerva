@@ -10,11 +10,14 @@ import bt.metainfo.TorrentFile;
 import bt.metainfo.TorrentId;
 import bt.runtime.BtClient;
 import bt.runtime.BtRuntime;
+import bt.runtime.BtRuntimeBuilder;
 import bt.runtime.Config;
 import bt.torrent.TorrentSessionState;
 import bt.tracker.http.HttpTrackerModule;
 import bt.peerexchange.PeerExchangeModule;
+import bt.peer.lan.LocalServiceDiscoveryModule;
 
+import com.minerva.DummySelectorModule;
 import com.minerva.MinervaPortMapperModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,12 +227,17 @@ public class JLibTorrentManager {
             }
         });
 
-        this.runtime = BtRuntime.builder(config)
-                .module(dhtModule)
-                .module(new HttpTrackerModule())
-                .module(new PeerExchangeModule())
-                .module(new MinervaPortMapperModule())
-                .build();
+        BtRuntimeBuilder builder = BtRuntime.builder(config);
+
+// Try to disable default modules (avoids auto-loading LSD, PEX, tracker, etc.)
+// Manually add all modules we need
+this.runtime = BtRuntime.builder(config)
+        .module(dhtModule)
+        .module(new HttpTrackerModule())
+        .module(new PeerExchangeModule())
+        .module(new MinervaPortMapperModule())
+        .module(new DummySelectorModule())   // <-- add this line
+        .build(); // your patched LSD module
 
         this.dhtService = runtime.service(DHTService.class);
         if (this.dhtService != null) {
