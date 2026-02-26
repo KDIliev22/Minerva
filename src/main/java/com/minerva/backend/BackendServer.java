@@ -12,7 +12,8 @@ import com.minerva.dht.KeywordSearchClient;
 import com.minerva.dht.KeywordSearchServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.ConcurrentHashMap;   // <-- ADD THIS IMPORT
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BackendServer {
@@ -45,6 +47,7 @@ public class BackendServer {
         String downloadsDir = System.getenv().getOrDefault("DOWNLOADS_DIR", "downloads");
         String albumArtDir = System.getenv().getOrDefault("ALBUM_ART_DIR", "album_art");
         int searchPort = Integer.parseInt(System.getenv().getOrDefault("SEARCH_PORT", "4568"));
+        String crawlerUrl = System.getenv("CRAWLER_URL"); // may be null
 
         this.projectRoot = Paths.get(System.getProperty("user.dir"));
         this.libraryPath = projectRoot.resolve(libDir);
@@ -52,7 +55,6 @@ public class BackendServer {
         this.downloadsPath = projectRoot.resolve(downloadsDir);
         this.albumArtPath = projectRoot.resolve(albumArtDir);
 
-        // Ensure directories exist
         try {
             Files.createDirectories(libraryPath);
             Files.createDirectories(torrentsPath);
@@ -62,14 +64,10 @@ public class BackendServer {
             logger.error("Failed to create directories", e);
         }
 
-        // Create torrent manager (starts BT runtime quickly)
         this.torrentManager = JLibTorrentManager.getInstance(downloadsPath.toFile());
-
-        // Create library manager and playlist manager
         this.libraryManager = new LibraryManager(torrentManager, libraryPath, torrentsPath);
         this.playlistManager = new PlaylistManager(projectRoot.toString());
 
-        // Set up download completion callback
         this.torrentManager.setDownloadCompleteCallback(hashHex -> {
             Map<String, Object> metadata = pendingDownloads.remove(hashHex);
             if (metadata == null) {
@@ -92,8 +90,7 @@ public class BackendServer {
             }, "DownloadImport-" + hashHex.substring(0, Math.min(8, hashHex.length()))).start();
         });
 
-        // Create DHT keyword manager and start keyword search server
-        this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager);
+        this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager, crawlerUrl);
         try {
             this.keywordSearchServer = new KeywordSearchServer(searchPort, libraryManager, torrentManager.getListenPort(), dhtKeywordManager);
             this.keywordSearchServer.start();
@@ -104,29 +101,23 @@ public class BackendServer {
     }
 
     public void start(int port) {
-        long maxSize = 500_000_000L; // 500 MB
+        long maxSize = 500_000_000L;
 
-        // Start Javalin immediately
         Javalin app = Javalin.create(cfg -> {
             cfg.maxRequestSize = maxSize;
             cfg.configureServletContextHandler(sch -> sch.setMaxFormContentSize((int) maxSize));
         }).start("127.0.0.1", port);
 
-        // CORS headers
         app.before(ctx -> {
             ctx.header("Access-Control-Allow-Origin", "*");
             ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             ctx.header("Access-Control-Allow-Headers", "Content-Type");
         });
 
-        // Register all endpoints (they will work as soon as libraryManager is ready)
         registerEndpoints(app);
 
         logger.info("Javalin started on port {}", port);
 
-        // 2. Start keyword search server (depends on libraryManager and torrentManager)
-
-        // 3. Heavy initialisation in a background thread (does not block endpoints)
         new Thread(() -> {
             try {
                 logger.info("Starting background library initialisation...");
@@ -148,6 +139,7 @@ public class BackendServer {
         System.err.println("Backend server started on port " + port + " bound to 127.0.0.1");
     }
 
+    @SuppressWarnings("unchecked")
     private void registerEndpoints(Javalin app) {
         app.get("/api/test", ctx -> ctx.result("OK"));
         app.get("/api/tracks", ctx -> ctx.json(libraryManager.getTracks()));
@@ -189,10 +181,10 @@ public class BackendServer {
                 return;
             }
             String[] keywords = query.toLowerCase().split("\\s+");
-            Map<String, MusicFile> trackByKey = new java.util.concurrent.ConcurrentHashMap<>();
-            Map<String, java.util.concurrent.atomic.AtomicInteger> matchCounts = new java.util.concurrent.ConcurrentHashMap<>();
-            java.util.concurrent.ExecutorService searchExecutor = java.util.concurrent.Executors.newFixedThreadPool(keywords.length);
-            java.util.List<java.util.concurrent.Future<?>> searchFutures = new java.util.ArrayList<>();
+            Map<String, MusicFile> trackByKey = new ConcurrentHashMap<>();
+            Map<String, java.util.concurrent.atomic.AtomicInteger> matchCounts = new ConcurrentHashMap<>();
+            ExecutorService searchExecutor = Executors.newFixedThreadPool(keywords.length);
+            List<java.util.concurrent.Future<?>> searchFutures = new ArrayList<>();
             for (String kw : keywords) {
                 searchFutures.add(searchExecutor.submit(() -> {
                     List<KeywordSearchClient.SearchResult> peerResults = dhtKeywordManager.searchKeyword(kw);
@@ -246,7 +238,7 @@ public class BackendServer {
                             hash, metadata.get("artist"), metadata.get("album"));
                 }
 
-                JLibTorrentManager.MagnetResult result = torrentManager.seedMagnet(magnet);
+                torrentManager.seedMagnet(magnet);  // result variable removed
                 Path torrentFilePath = torrentsPath.resolve(hash + ".torrent");
                 torrentManager.saveTorrentFile(hash, torrentFilePath);
 
@@ -563,7 +555,6 @@ public class BackendServer {
             ctx.json(libraryManager.search(query));
         });
 
-        // Log viewer endpoint
         app.get("/api/logs", ctx -> {
             int lines = 200;
             String linesParam = ctx.queryParam("lines");
