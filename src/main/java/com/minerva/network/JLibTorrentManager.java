@@ -170,8 +170,8 @@ public class JLibTorrentManager {
         // Obtain DHT service directly from runtime
         this.dhtService = runtime.service(DHTService.class);
         if (this.dhtService != null) {
-            // Periodically refresh peer list
-            dhtScheduler.scheduleAtFixedRate(this::refreshDiscoveryPeers, 30, 60, TimeUnit.SECONDS);
+            // Delay first peer refresh to allow DHT to fully initialize
+            dhtScheduler.scheduleAtFixedRate(this::refreshDiscoveryPeers, 60, 60, TimeUnit.SECONDS);
         } else {
             logger.warn("DHTService not available – discovery will be empty");
         }
@@ -202,7 +202,6 @@ public class JLibTorrentManager {
             Set<InetSocketAddress> newPeers = dhtService.getPeers(DISCOVERY_TORRENT_ID)
                     .map(p -> {
                         try {
-                            // Use reflection to get address/port, as Peer type is not public in bt 1.10
                             InetAddress addr = (InetAddress) p.getClass().getMethod("getInetAddress").invoke(p);
                             int port = (int) p.getClass().getMethod("getPort").invoke(p);
                             return new InetSocketAddress(addr, port);
@@ -217,7 +216,8 @@ public class JLibTorrentManager {
             discoveryPeers.addAll(newPeers);
             logger.debug("Discovered {} peers via DHT", newPeers.size());
         } catch (Exception e) {
-            logger.warn("Failed to refresh peers", e);
+            // Only log at debug level to avoid log spam if DHT is not ready
+            logger.debug("DHT not ready or failed to refresh peers: {}", e.getMessage());
         }
     }
 
