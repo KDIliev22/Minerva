@@ -15,15 +15,16 @@ if not exist "%CRAWLER_BIN%" (
 
 REM Start the crawler in a new window (minimized)
 echo Starting DHT crawler...
-start /min "Minerva Crawler" "%CRAWLER_BIN%" -listen :8080
+start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080
 
 REM Wait a bit for crawler to start
 timeout /t 2 /nobreak >nul
 
-REM Set environment variable and run Java app
+REM Set environment variables for Java
 set CRAWLER_URL=%CRAWLER_URL%
+set LISTEN_PORT=6882
 
-echo Starting Minerva backend...
+echo Starting Minerva backend on DHT port %LISTEN_PORT%...
 java --add-opens java.base/java.lang=ALL-UNNAMED ^
      --add-opens java.base/java.lang.invoke=ALL-UNNAMED ^
      -cp target/minerva-1.0.0.jar com.minerva.MainApp
