@@ -62,7 +62,6 @@ public class JLibTorrentManager {
     private DHTService dhtService;
     private final Set<InetSocketAddress> discoveryPeers = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService dhtScheduler = Executors.newSingleThreadScheduledExecutor();
-
     private static class ClientInfo {
         final BtClient client;
         volatile String name;

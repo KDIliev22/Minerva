@@ -4,18 +4,15 @@ import com.minerva.library.LibraryManager;
 import com.minerva.model.MusicFile;
 import com.minerva.network.JLibTorrentManager;
 import com.minerva.playlist.PlaylistManager;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.javalin.Javalin;
 import io.javalin.http.UploadedFile;
-
 import com.minerva.dht.DHTKeywordManager;
 import com.minerva.dht.KeywordSearchClient;
 import com.minerva.dht.KeywordSearchServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.util.concurrent.ConcurrentHashMap;   // <-- ADD THIS IMPORT
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,34 +27,26 @@ public class BackendServer {
     private final JLibTorrentManager torrentManager;
     private final PlaylistManager playlistManager;
     private final Path projectRoot;
-    private final Path electronRoot;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(BackendServer.class);
-    private DHTKeywordManager dhtKeywordManager;
-    private KeywordSearchServer keywordSearchServer;
-    // Pending download metadata: hash -> {artist, album, tracks}
-    private final Map<String, Map<String, Object>> pendingDownloads = new java.util.concurrent.ConcurrentHashMap<>();
+    private final DHTKeywordManager dhtKeywordManager;
+    private final KeywordSearchServer keywordSearchServer;
+    private final Map<String, Map<String, Object>> pendingDownloads = new ConcurrentHashMap<>();
 
-    // Fields for directory paths
     private final Path libraryPath;
     private final Path torrentsPath;
     private final Path downloadsPath;
     private final Path albumArtPath;
-    private final String libDir;
-    private final String torrentDir;
-    private final String downloadsDir;
-    private final String albumArtDir;
 
     public BackendServer() {
-        // Read directories from environment (with fallbacks)
-        this.libDir = System.getenv().getOrDefault("LIBRARY_DIR", "library");
-        this.torrentDir = System.getenv().getOrDefault("TORRENT_DIR", "torrent_files");
-        this.downloadsDir = System.getenv().getOrDefault("DOWNLOADS_DIR", "downloads");
-        this.albumArtDir = System.getenv().getOrDefault("ALBUM_ART_DIR", "album_art");
+        // Read directories from environment
+        String libDir = System.getenv().getOrDefault("LIBRARY_DIR", "library");
+        String torrentDir = System.getenv().getOrDefault("TORRENT_DIR", "torrent_files");
+        String downloadsDir = System.getenv().getOrDefault("DOWNLOADS_DIR", "downloads");
+        String albumArtDir = System.getenv().getOrDefault("ALBUM_ART_DIR", "album_art");
+        int searchPort = Integer.parseInt(System.getenv().getOrDefault("SEARCH_PORT", "4568"));
 
         this.projectRoot = Paths.get(System.getProperty("user.dir"));
-        this.electronRoot = projectRoot.resolve("musicshare-electron");
-
         this.libraryPath = projectRoot.resolve(libDir);
         this.torrentsPath = projectRoot.resolve(torrentDir);
         this.downloadsPath = projectRoot.resolve(downloadsDir);
@@ -75,10 +64,12 @@ public class BackendServer {
 
         // Create torrent manager (starts BT runtime quickly)
         this.torrentManager = JLibTorrentManager.getInstance(downloadsPath.toFile());
+
+        // Create library manager and playlist manager
         this.libraryManager = new LibraryManager(torrentManager, libraryPath, torrentsPath);
         this.playlistManager = new PlaylistManager(projectRoot.toString());
 
-        // Set up download completion callback to import into library
+        // Set up download completion callback
         this.torrentManager.setDownloadCompleteCallback(hashHex -> {
             Map<String, Object> metadata = pendingDownloads.remove(hashHex);
             if (metadata == null) {
@@ -91,7 +82,6 @@ public class BackendServer {
             List<Map<String, String>> tracks = (List<Map<String, String>>) metadata.get("tracks");
             logger.info("Download completed for {} - importing to library as {}/{}", hashHex, artist, album);
 
-            // Import in background thread to avoid blocking the bt callback
             new Thread(() -> {
                 try {
                     libraryManager.importCompletedDownload(hashHex, artist, album, tracks);
@@ -101,12 +91,22 @@ public class BackendServer {
                 }
             }, "DownloadImport-" + hashHex.substring(0, Math.min(8, hashHex.length()))).start();
         });
+
+        // Create DHT keyword manager and start keyword search server
+        this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager);
+        try {
+            this.keywordSearchServer = new KeywordSearchServer(searchPort, libraryManager, torrentManager.getListenPort(), dhtKeywordManager);
+            this.keywordSearchServer.start();
+            logger.info("Keyword search server started on port {}", searchPort);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to start keyword search server", e);
+        }
     }
 
     public void start(int port) {
         long maxSize = 500_000_000L; // 500 MB
 
-        // 1. Start Javalin immediately (before heavy init)
+        // Start Javalin immediately
         Javalin app = Javalin.create(cfg -> {
             cfg.maxRequestSize = maxSize;
             cfg.configureServletContextHandler(sch -> sch.setMaxFormContentSize((int) maxSize));
@@ -125,15 +125,6 @@ public class BackendServer {
         logger.info("Javalin started on port {}", port);
 
         // 2. Start keyword search server (depends on libraryManager and torrentManager)
-        int searchPort = Integer.parseInt(System.getenv().getOrDefault("SEARCH_PORT", "4568"));
-        this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager);
-        try {
-            this.keywordSearchServer = new KeywordSearchServer(searchPort, libraryManager, torrentManager.getListenPort());
-            this.keywordSearchServer.start();
-            logger.info("Keyword search server started on port {}", searchPort);
-        } catch (IOException e) {
-            logger.error("Failed to start keyword search server", e);
-        }
 
         // 3. Heavy initialisation in a background thread (does not block endpoints)
         new Thread(() -> {

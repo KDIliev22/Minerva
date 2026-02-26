@@ -26,8 +26,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import java.util.Optional;
-import java.util.Collections;
+
 import java.nio.channels.Selector;
 import java.util.Collection;
 import java.util.Objects;
@@ -86,19 +85,19 @@ public class LocalServiceDiscoveryModule implements Module {
     }
 
     @Provides
-@Singleton
-public Collection<AnnounceGroupChannel> provideGroupChannels(
-        ILocalServiceDiscoveryInfo info,
-        @PeerConnectionSelector Selector selector,
-        IRuntimeLifecycleBinder lifecycleBinder) {
+    @Singleton
+    public Collection<AnnounceGroupChannel> provideGroupChannels(
+            ILocalServiceDiscoveryInfo info,
+            @PeerConnectionSelector Selector selector,
+            IRuntimeLifecycleBinder lifecycleBinder) {
 
-    Collection<AnnounceGroupChannel> groupChannels = info.getCompatibleGroups().stream()
-            .map(g -> new AnnounceGroupChannel(g, selector, info.getNetworkInterfaces()))
-            .collect(Collectors.toList());
+        Collection<AnnounceGroupChannel> groupChannels = info.getCompatibleGroups().stream()
+                .map(g -> new AnnounceGroupChannel(g, selector, info.getNetworkInterfaces()))
+                .collect(Collectors.toList());
 
-    lifecycleBinder.onShutdown(LifecycleBinding.bind(() -> groupChannels.forEach(AnnounceGroupChannel::closeQuietly))
-            .description("Shutdown LSD group channels").build());
+        lifecycleBinder.onShutdown(LifecycleBinding.bind(() -> groupChannels.forEach(AnnounceGroupChannel::closeQuietly))
+                .description("Shutdown LSD group channels").build());
 
-    return groupChannels;
-}
+        return groupChannels;
+    }
 }

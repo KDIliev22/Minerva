@@ -46,16 +46,6 @@ public class KeywordSearchClient {
         return Collections.emptyList();
     }
 
-    private static boolean isPrivateHost(String host) {
-        return host.equals("127.0.0.1") || host.equals("::1") ||
-               host.startsWith("10.") ||
-               host.startsWith("172.16.") || host.startsWith("172.17.") || host.startsWith("172.18.") || host.startsWith("172.19.") ||
-               host.startsWith("172.20.") || host.startsWith("172.21.") || host.startsWith("172.22.") || host.startsWith("172.23.") ||
-               host.startsWith("172.24.") || host.startsWith("172.25.") || host.startsWith("172.26.") || host.startsWith("172.27.") ||
-               host.startsWith("172.28.") || host.startsWith("172.29.") || host.startsWith("172.30.") || host.startsWith("172.31.") ||
-               host.startsWith("192.168.");
-    }
-
     public static class SearchResult {
         public String title;
         public String artist;
@@ -64,6 +54,8 @@ public class KeywordSearchClient {
         public String genre;
         public Integer year;
         public Integer listenPort;
+        public List<String> peers;  // list of "host:port" strings of other known Minerva nodes
+
         // Set by DHTKeywordManager after receiving results
         public transient String peerHost;
     }

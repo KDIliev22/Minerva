@@ -11,23 +11,27 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class KeywordSearchServer {
     private static final Logger logger = LoggerFactory.getLogger(KeywordSearchServer.class);
     private final int port;
     private final int listenPort;
     private final LibraryManager libraryManager;
+    private final DHTKeywordManager dhtKeywordManager;  // added
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ServerSocket serverSocket;
     private ExecutorService executor;
     private volatile boolean running = false;
 
-    public KeywordSearchServer(int port, LibraryManager libraryManager, int listenPort) {
+    public KeywordSearchServer(int port, LibraryManager libraryManager, int listenPort, DHTKeywordManager dhtKeywordManager) {
         this.port = port;
         this.libraryManager = libraryManager;
         this.listenPort = listenPort;
+        this.dhtKeywordManager = dhtKeywordManager;  // store reference
     }
 
     public void start() throws IOException {
@@ -78,8 +82,22 @@ public class KeywordSearchServer {
             // Remove .minerva suffix for local search
             String searchKeyword = keyword.substring(0, keyword.length() - ".minerva".length());
             List<MusicFile> tracks = libraryManager.searchLocal(searchKeyword);
+
+            // Get list of known peers from DHTKeywordManager (convert to "host:port" strings)
+            Set<String> peerStrings = dhtKeywordManager.getDiscoveryPeers().stream()
+                    .map(addr -> addr.getAddress().getHostAddress() + ":" + addr.getPort())
+                    .collect(Collectors.toSet());
+
             List<SearchResult> results = tracks.stream()
-                    .map(t -> new SearchResult(t.getTitle(), t.getArtist(), t.getAlbum(), t.getTorrentHash(), t.getGenre(), t.getYear(), listenPort))
+                    .map(t -> new SearchResult(
+                            t.getTitle(),
+                            t.getArtist(),
+                            t.getAlbum(),
+                            t.getTorrentHash(),
+                            t.getGenre(),
+                            t.getYear(),
+                            listenPort,
+                            peerStrings))   // include the list
                     .toList();
             String json = objectMapper.writeValueAsString(results);
             out.println(json);
@@ -96,8 +114,9 @@ public class KeywordSearchServer {
         public String genre;
         public Integer year;
         public Integer listenPort;
+        public List<String> peers;
 
-        public SearchResult(String title, String artist, String album, String torrentHash, String genre, Integer year, int listenPort) {
+        public SearchResult(String title, String artist, String album, String torrentHash, String genre, Integer year, int listenPort, Set<String> peers) {
             this.title = title;
             this.artist = artist;
             this.album = album;
@@ -105,6 +124,7 @@ public class KeywordSearchServer {
             this.genre = genre;
             this.year = year;
             this.listenPort = listenPort;
+            this.peers = List.copyOf(peers);  // convert to list for JSON
         }
     }
 }
