@@ -1,68 +1,34 @@
 package com.minerva.dht;
 
+import com.minerva.network.JLibTorrentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages keyword-based peer discovery for the Minerva P2P search protocol.
  *
- * After the migration from jlibtorrent to bt (pure Java), standalone DHT
- * announce / get_peers operations are no longer used.  Peer discovery for
- * keyword searches now relies exclusively on direct TCP queries to known
- * Minerva peers (parsed from DHT_BOOTSTRAP_NODES).
- *
- * bt's built-in DHT still runs and handles automatic peer discovery for
- * active torrents — this class only deals with the Minerva keyword overlay.
+ * This class now relies on the DHT-based peer discovery provided by
+ * JLibTorrentManager. It queries all discovered peers directly via TCP
+ * using the fixed SEARCH_PORT.
  */
 public class DHTKeywordManager {
     private static final Logger logger = LoggerFactory.getLogger(DHTKeywordManager.class);
     private final int localSearchPort;
-    private final List<PeerAddress> knownPeers;
+    private final JLibTorrentManager torrentManager;
     // Maps torrentHash -> set of "host:listenPort" endpoints that have the torrent
     private final Map<String, Set<String>> torrentPeerEndpoints = new ConcurrentHashMap<>();
 
-    private static class PeerAddress {
-        final String host;
-        final int port;
-        PeerAddress(String host, int port) { this.host = host; this.port = port; }
-        @Override public String toString() { return host + ":" + port; }
-    }
-
-    public DHTKeywordManager(int searchPort) {
+    public DHTKeywordManager(int searchPort, JLibTorrentManager torrentManager) {
         this.localSearchPort = searchPort;
-        // Parse known Minerva peers from DHT_BOOTSTRAP_NODES (host:port pairs)
-        String bootstrapNodes = System.getenv().getOrDefault("DHT_BOOTSTRAP_NODES", "");
-        this.knownPeers = new ArrayList<>();
-        for (String node : bootstrapNodes.split(",")) {
-            node = node.trim();
-            if (!node.isEmpty() && node.contains(":")) {
-                String host = node.substring(0, node.lastIndexOf(':'));
-                String portStr = node.substring(node.lastIndexOf(':') + 1);
-                try {
-                    int port = Integer.parseInt(portStr);
-                    // Skip self (localhost pointing to our own search port)
-                    if (isLocalHost(host) && port == searchPort) {
-                        logger.info("Skipping self in known peers: {}", node);
-                        continue;
-                    }
-                    knownPeers.add(new PeerAddress(host, port));
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid port in bootstrap node: {}", node);
-                }
-            }
-        }
-        logger.info("Known Minerva peers: {}", knownPeers);
-    }
-
-    private boolean isLocalHost(String host) {
-        return "127.0.0.1".equals(host) || "localhost".equals(host) || "0.0.0.0".equals(host);
+        this.torrentManager = torrentManager;
+        logger.info("DHTKeywordManager initialized, search port {}", localSearchPort);
     }
 
     /**
@@ -82,36 +48,41 @@ public class DHTKeywordManager {
 
     /**
      * Announce a keyword to the network.
-     * Currently a no-op — bt's built-in DHT handles torrent-level announce
-     * automatically.  Standalone keyword announce requires a custom DHT
-     * overlay which is not yet implemented for the bt migration.
+     * No-op – keyword announcement is not needed because DHT is only used for
+     * node discovery, not for keyword storage.
      */
     public void announceKeyword(String keyword) {
         String minervaKeyword = keyword.toLowerCase().endsWith(".minerva")
                 ? keyword : keyword + ".minerva";
-        logger.debug("announceKeyword called for '{}' (no-op in bt migration)", minervaKeyword);
+        logger.debug("announceKeyword called for '{}' (no-op)", minervaKeyword);
     }
 
     /**
      * Search for peers that have the given keyword.
-     * Queries known Minerva peers directly via TCP.
+     * Queries all discovered Minerva peers directly via TCP.
      */
     public List<KeywordSearchClient.SearchResult> searchKeyword(String keyword) {
         String minervaKeyword = keyword.toLowerCase().endsWith(".minerva")
                 ? keyword.toLowerCase() : keyword.toLowerCase() + ".minerva";
 
+        Set<InetSocketAddress> peers = torrentManager.getDiscoveryPeers();
+        if (peers.isEmpty()) {
+            logger.debug("No discovery peers known yet");
+            return Collections.emptyList();
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool(
-                Math.max(4, knownPeers.size()));
+                Math.max(4, peers.size()));
         List<Future<List<KeywordSearchClient.SearchResult>>> futures = new ArrayList<>();
 
-        // Query known Minerva peers directly using THEIR search port
-        for (PeerAddress peer : knownPeers) {
-            final String peerHost = peer.host;
+        for (InetSocketAddress addr : peers) {
+            final String peerHost = addr.getAddress().getHostAddress();
+            // Use the local search port – assumes all nodes use the same SEARCH_PORT
             futures.add(executor.submit(() -> {
-                logger.debug("Querying known Minerva peer {} for keyword '{}'",
-                        peer, minervaKeyword);
+                logger.debug("Querying discovered peer {}:{} for keyword '{}'",
+                        peerHost, localSearchPort, minervaKeyword);
                 List<KeywordSearchClient.SearchResult> results =
-                        KeywordSearchClient.queryPeer(peerHost, peer.port, minervaKeyword);
+                        KeywordSearchClient.queryPeer(peerHost, localSearchPort, minervaKeyword);
                 // Tag results with peer address and cache listen port mapping
                 for (KeywordSearchClient.SearchResult r : results) {
                     r.peerHost = peerHost;
@@ -147,8 +118,8 @@ public class DHTKeywordManager {
             }
         }
         executor.shutdownNow();
-        logger.info("Keyword '{}' search returned {} unique results",
-                minervaKeyword, allResults.size());
+        logger.info("Keyword '{}' search returned {} unique results from {} peers",
+                minervaKeyword, allResults.size(), peers.size());
         return allResults;
     }
 

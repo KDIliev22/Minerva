@@ -49,85 +49,79 @@ public class BackendServer {
     private final String albumArtDir;
 
     public BackendServer() {
-        // Read directories from environment (with fallbacks)
-        this.libDir = System.getenv().getOrDefault("LIBRARY_DIR", "library");
-        this.torrentDir = System.getenv().getOrDefault("TORRENT_DIR", "torrent_files");
-        this.downloadsDir = System.getenv().getOrDefault("DOWNLOADS_DIR", "downloads");
-        this.albumArtDir = System.getenv().getOrDefault("ALBUM_ART_DIR", "album_art");
-        int searchPort = Integer.parseInt(System.getenv().getOrDefault("SEARCH_PORT", "4568"));
+    // Read directories from environment (with fallbacks)
+    this.libDir = System.getenv().getOrDefault("LIBRARY_DIR", "library");
+    this.torrentDir = System.getenv().getOrDefault("TORRENT_DIR", "torrent_files");
+    this.downloadsDir = System.getenv().getOrDefault("DOWNLOADS_DIR", "downloads");
+    this.albumArtDir = System.getenv().getOrDefault("ALBUM_ART_DIR", "album_art");
+    int searchPort = Integer.parseInt(System.getenv().getOrDefault("SEARCH_PORT", "4568"));
 
-        this.projectRoot = Paths.get(System.getProperty("user.dir"));
-        this.electronRoot = projectRoot.resolve("musicshare-electron");
+    this.projectRoot = Paths.get(System.getProperty("user.dir"));
+    this.electronRoot = projectRoot.resolve("musicshare-electron");
 
-        this.libraryPath = projectRoot.resolve(libDir);
-        this.torrentsPath = projectRoot.resolve(torrentDir);
-        this.downloadsPath = projectRoot.resolve(downloadsDir);
-        this.albumArtPath = projectRoot.resolve(albumArtDir);
+    this.libraryPath = projectRoot.resolve(libDir);
+    this.torrentsPath = projectRoot.resolve(torrentDir);
+    this.downloadsPath = projectRoot.resolve(downloadsDir);
+    this.albumArtPath = projectRoot.resolve(albumArtDir);
 
-        // Ensure directories exist
-        try {
-            Files.createDirectories(libraryPath);
-            Files.createDirectories(torrentsPath);
-            Files.createDirectories(downloadsPath);
-            Files.createDirectories(albumArtPath);
-        } catch (IOException e) {
-            logger.error("Failed to create directories", e);
-        }
-
-        this.torrentManager = JLibTorrentManager.getInstance(downloadsPath.toFile());
-        this.libraryManager = new LibraryManager(torrentManager, libraryPath, torrentsPath);
-        this.playlistManager = new PlaylistManager(projectRoot.toString());
-
-        // Set up download completion callback to import into library
-        this.torrentManager.setDownloadCompleteCallback(hashHex -> {
-            Map<String, Object> metadata = pendingDownloads.remove(hashHex);
-            if (metadata == null) {
-                logger.info("Torrent finished {} but no pending metadata (likely already in library)", hashHex);
-                return;
-            }
-            String artist = (String) metadata.get("artist");
-            String album = (String) metadata.get("album");
-            @SuppressWarnings("unchecked")
-            List<Map<String, String>> tracks = (List<Map<String, String>>) metadata.get("tracks");
-            logger.info("Download completed for {} - importing to library as {}/{}", hashHex, artist, album);
-
-            // Import in background thread to avoid blocking the bt callback
-            new Thread(() -> {
-                try {
-                    libraryManager.importCompletedDownload(hashHex, artist, album, tracks);
-                    logger.info("Successfully imported and auto-seeding: {}", hashHex);
-                } catch (Exception e) {
-                    logger.error("Failed to import download {} into library", hashHex, e);
-                }
-            }, "DownloadImport-" + hashHex.substring(0, Math.min(8, hashHex.length()))).start();
-        });
-
-        int listenPort = torrentManager.getListenPort();
-        this.keywordSearchServer = new KeywordSearchServer(searchPort, libraryManager, listenPort);
-        try {
-            this.keywordSearchServer.start();
-        } catch (IOException e) {
-            logger.error("Failed to start keyword search server", e);
-        }
-        // DHT and keyword search now always use SEARCH_PORT
-        this.dhtKeywordManager = new DHTKeywordManager(searchPort);
-
-        // === Startup sequence ===
-        // 1. Enrich metadata from audio files (jaudiotagger) — safe, no active torrents yet
-        libraryManager.enrichIncompleteMetadata();
-
-        // 2. Load library tracks from metadata JSONs
-        libraryManager.loadLibraryFromTorrents();
-
-        // 3. DHT keyword announcement
-        logger.info("Waiting for DHT bootstrap before announcing keywords...");
-        try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
-        libraryManager.announceAllKeywords(dhtKeywordManager);
-        logger.info("Keyword announcement complete.");
-
-        // 4. Seed existing library torrents (pure Java — no SIGSEGV risk)
-        libraryManager.seedExistingTorrents();
+    // Ensure directories exist
+    try {
+        Files.createDirectories(libraryPath);
+        Files.createDirectories(torrentsPath);
+        Files.createDirectories(downloadsPath);
+        Files.createDirectories(albumArtPath);
+    } catch (IOException e) {
+        logger.error("Failed to create directories", e);
     }
+
+    this.torrentManager = JLibTorrentManager.getInstance(downloadsPath.toFile());
+    this.libraryManager = new LibraryManager(torrentManager, libraryPath, torrentsPath);
+    this.playlistManager = new PlaylistManager(projectRoot.toString());
+
+    // Set up download completion callback to import into library
+    this.torrentManager.setDownloadCompleteCallback(hashHex -> {
+        Map<String, Object> metadata = pendingDownloads.remove(hashHex);
+        if (metadata == null) {
+            logger.info("Torrent finished {} but no pending metadata (likely already in library)", hashHex);
+            return;
+        }
+        String artist = (String) metadata.get("artist");
+        String album = (String) metadata.get("album");
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> tracks = (List<Map<String, String>>) metadata.get("tracks");
+        logger.info("Download completed for {} - importing to library as {}/{}", hashHex, artist, album);
+
+        // Import in background thread to avoid blocking the bt callback
+        new Thread(() -> {
+            try {
+                libraryManager.importCompletedDownload(hashHex, artist, album, tracks);
+                logger.info("Successfully imported and auto-seeding: {}", hashHex);
+            } catch (Exception e) {
+                logger.error("Failed to import download {} into library", hashHex, e);
+            }
+        }, "DownloadImport-" + hashHex.substring(0, Math.min(8, hashHex.length()))).start();
+    });
+
+    int listenPort = torrentManager.getListenPort();
+    // Pass torrentManager to DHTKeywordManager
+    this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager);
+
+    // === Startup sequence ===
+    // 1. Enrich metadata from audio files (jaudiotagger) — safe, no active torrents yet
+    libraryManager.enrichIncompleteMetadata();
+
+    // 2. Load library tracks from metadata JSONs
+    libraryManager.loadLibraryFromTorrents();
+
+    // 3. DHT keyword announcement
+    logger.info("Waiting for DHT bootstrap before announcing keywords...");
+    try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
+    libraryManager.announceAllKeywords(dhtKeywordManager);
+    logger.info("Keyword announcement complete.");
+
+    // 4. Seed existing library torrents (pure Java — no SIGSEGV risk)
+    libraryManager.seedExistingTorrents();
+}
 
     public void start(int port) {
         long maxSize = 500_000_000L; // 500 MB – enough for large album uploads
