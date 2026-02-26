@@ -12,12 +12,12 @@ import bt.runtime.BtClient;
 import bt.runtime.BtRuntime;
 import bt.runtime.Config;
 import bt.torrent.TorrentSessionState;
+import bt.tracker.http.HttpTrackerModule;
+import bt.peerexchange.PeerExchangeModule;
+
+import com.minerva.MinervaPortMapperModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.bitlet.weupnp.GatewayDevice;
-import org.bitlet.weupnp.GatewayDiscover;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
@@ -27,10 +27,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -53,19 +50,15 @@ public class JLibTorrentManager {
     private final BtRuntime runtime;
     private final File saveDirectory;
     private final int listenPort;
-    private GatewayDevice upnpGateway;
+    private final int dhtPort;
 
-    // Active torrent clients
     private final Map<String, ClientInfo> activeClients = new ConcurrentHashMap<>();
     private final Map<String, byte[]> torrentBytesCache = new ConcurrentHashMap<>();
     private Consumer<String> downloadCompleteCallback;
 
-    // DHT service for peer discovery
     private DHTService dhtService;
     private final Set<InetSocketAddress> discoveryPeers = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService dhtScheduler = Executors.newSingleThreadScheduledExecutor();
-
-    // ────────────────────── Inner types ──────────────────────
 
     private static class ClientInfo {
         final BtClient client;
@@ -111,7 +104,72 @@ public class JLibTorrentManager {
         public MagnetResult(String hash) { this.hash = hash; }
     }
 
-    // ────────────────────── Auto Port Selection ──────────────────────
+    private static InetAddress getLanAddress() {
+    try {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        if (interfaces == null) {
+            logger.warn("No network interfaces found, falling back to localhost");
+            try {
+                return InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                logger.warn("getLocalHost() failed, using loopback");
+                return InetAddress.getLoopbackAddress();
+            }
+        }
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface ni = interfaces.nextElement();
+            try {
+                if (ni.isLoopback() || !ni.isUp()) continue;
+                Enumeration<InetAddress> addrs = ni.getInetAddresses();
+                if (addrs == null) continue;
+                while (addrs.hasMoreElements()) {
+                    InetAddress addr = addrs.nextElement();
+                    if (addr instanceof Inet4Address && !addr.isLinkLocalAddress()) {
+                        String host = addr.getHostAddress();
+                        if (!host.startsWith("172.17.") && !host.startsWith("172.18.")) {
+                            return addr;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Skipping interface {} due to error: {}", ni.getName(), e.getMessage());
+            }
+        }
+    } catch (SocketException e) {
+        logger.warn("Failed to enumerate network interfaces", e);
+    }
+
+    // Fallback: connect to a public DNS to get the outgoing interface address
+    try (final DatagramSocket socket = new DatagramSocket()) {
+        InetAddress dns;
+        try {
+            dns = InetAddress.getByName("8.8.8.8");
+        } catch (UnknownHostException e) {
+            // Fallback to localhost
+            try {
+                return InetAddress.getLocalHost();
+            } catch (UnknownHostException ex) {
+                return InetAddress.getLoopbackAddress();
+            }
+        }
+        socket.connect(dns, 10002);
+        return socket.getLocalAddress();
+    } catch (Exception e) {
+        try {
+            return InetAddress.getLocalHost();
+        } catch (UnknownHostException ex) {
+            return InetAddress.getLoopbackAddress();
+        }
+    }
+}
+
+    private static InetAddress getBindAddress() {
+        try {
+            return InetAddress.getByName("0.0.0.0");
+        } catch (UnknownHostException e) {
+            return InetAddress.getLoopbackAddress();
+        }
+    }
 
     private int findAvailablePort(int startPort, int maxAttempts) {
         for (int port = startPort; port < startPort + maxAttempts; port++) {
@@ -125,8 +183,6 @@ public class JLibTorrentManager {
         throw new RuntimeException("No free port in range " + startPort + " - " + (startPort + maxAttempts - 1));
     }
 
-    // ────────────────────── Constructor ──────────────────────
-
     private JLibTorrentManager(File saveDirectory) {
         this.saveDirectory = saveDirectory;
 
@@ -135,29 +191,18 @@ public class JLibTorrentManager {
         if (requestedPort != this.listenPort) {
             logger.info("Requested port {} busy, using {}", requestedPort, this.listenPort);
         }
+        this.dhtPort = this.listenPort;
 
-        InetAddress localAddr = findLocalAddress();
-        logger.info("Local address: {}", localAddr.getHostAddress());
+        final InetAddress lanAddr = getLanAddress();
+        final InetAddress bindAddr = getBindAddress();
+        logger.info("LAN address: {}, binding to: {}", lanAddr.getHostAddress(), bindAddr.getHostAddress());
 
-        // Setup DHT state directory robustly
         File dhtStateDir = new File(saveDirectory, "dht");
-        if (dhtStateDir.isAbsolute()) {
-            // If absolute, make it relative to saveDirectory
-            dhtStateDir = new File(saveDirectory, dhtStateDir.getName());
-        }
-        final String dhtStatePath = dhtStateDir.getAbsolutePath();
-        if (!dhtStateDir.exists()) {
-            boolean created = dhtStateDir.mkdirs();
-            if (created) {
-                logger.info("Created DHT state directory: {}", dhtStatePath);
-            } else {
-                logger.warn("Failed to create DHT state directory: {}", dhtStatePath);
-            }
-        }
+        if (!dhtStateDir.exists()) dhtStateDir.mkdirs();
 
         Config config = new Config() {
             @Override public int getAcceptorPort() { return listenPort; }
-            @Override public InetAddress getAcceptorAddress() { return localAddr; }
+            @Override public InetAddress getAcceptorAddress() { return bindAddr; }
             @Override public int getMaxSimultaneouslyAssignedPieces() { return 20; }
             @Override public java.time.Duration getMaxPieceReceivingTime() {
                 return java.time.Duration.ofSeconds(30);
@@ -172,52 +217,29 @@ public class JLibTorrentManager {
         };
 
         DHTModule dhtModule = new DHTModule(new DHTConfig() {
-            @Override
-            public boolean shouldUseRouterBootstrap() {
-                return true; // Bootstrap from public DHT routers
-            }
-
-            // Not all DHTConfig versions declare getStoragePath() in the interface, so don't use @Override
+            @Override public boolean shouldUseRouterBootstrap() { return true; }
+            @Override public int getListeningPort() { return dhtPort; }
             public String getStoragePath() {
-                return dhtStatePath;
+                return dhtStateDir.getAbsolutePath();
             }
         });
 
         this.runtime = BtRuntime.builder(config)
                 .module(dhtModule)
-                .autoLoadModules()
+                .module(new HttpTrackerModule())
+                .module(new PeerExchangeModule())
+                .module(new MinervaPortMapperModule())
                 .build();
 
-        // Obtain DHT service directly from runtime
         this.dhtService = runtime.service(DHTService.class);
         if (this.dhtService != null) {
-            // Delay first peer refresh to allow DHT to fully initialize
             dhtScheduler.scheduleAtFixedRate(this::refreshDiscoveryPeers, 60, 60, TimeUnit.SECONDS);
         } else {
             logger.warn("DHTService not available – discovery will be empty");
         }
 
-        logger.info("BT runtime started. Listen port: {}", listenPort);
-
-        logger.info("Before UPnP port mapping block");
-        // UPnP port mapping
-        try {
-            GatewayDiscover discover = new GatewayDiscover();
-            discover.discover();
-            GatewayDevice gw = discover.getValidGateway();
-            if (gw != null) {
-                gw.addPortMapping(listenPort, listenPort, gw.getLocalAddress().getHostAddress(), "TCP", "Minerva BT");
-                gw.addPortMapping(listenPort, listenPort, gw.getLocalAddress().getHostAddress(), "UDP", "Minerva BT DHT");
-                this.upnpGateway = gw;
-                logger.info("UPnP mapping successful");
-            }
-        } catch (Exception e) {
-            logger.warn("UPnP failed: {}", e.getMessage());
-        }
-        logger.info("After UPnP port mapping block");
+        logger.info("BT runtime started. Listen port: {} (DHT port: {})", listenPort, dhtPort);
     }
-
-    // ────────────────────── Discovery ──────────────────────
 
     private void refreshDiscoveryPeers() {
         if (dhtService == null) return;
@@ -229,7 +251,6 @@ public class JLibTorrentManager {
                             int port = (int) p.getClass().getMethod("getPort").invoke(p);
                             return new InetSocketAddress(addr, port);
                         } catch (Exception ex) {
-                            logger.warn("Failed to extract peer address", ex);
                             return null;
                         }
                     })
@@ -239,16 +260,13 @@ public class JLibTorrentManager {
             discoveryPeers.addAll(newPeers);
             logger.debug("Discovered {} peers via DHT", newPeers.size());
         } catch (Exception e) {
-            // Only log at debug level to avoid log spam if DHT is not ready
-            logger.debug("DHT not ready or failed to refresh peers: {}", e.getMessage());
+            logger.debug("DHT not ready: {}", e.getMessage());
         }
     }
 
     public Set<InetSocketAddress> getDiscoveryPeers() {
         return Set.copyOf(discoveryPeers);
     }
-
-    // ────────────────────── Singleton ──────────────────────
 
     public static synchronized JLibTorrentManager getInstance(File saveDirectory) {
         if (instance == null) {
@@ -268,9 +286,6 @@ public class JLibTorrentManager {
     public void setDownloadCompleteCallback(Consumer<String> callback) {
         this.downloadCompleteCallback = callback;
     }
-
-    // ────────────────────── Seeding, Magnet, Status methods ──────────────────────
-    // (All methods below are identical to your original working versions – no changes)
 
     public String seedTorrent(File torrentFile) {
         return seedTorrent(torrentFile, saveDirectory);
@@ -326,28 +341,31 @@ public class JLibTorrentManager {
 
             Storage storage = new FileSystemStorage(saveDirectory.toPath());
 
-            ClientInfo info = new ClientInfo(null, "magnet:" + hashHex, 0, new ArrayList<>());
-
             BtClient client = Bt.client(runtime)
                     .storage(storage)
                     .magnet(magnetUri)
                     .afterTorrentFetched(torrent -> {
-                        info.name = torrent.getName();
-                        info.totalSize = torrent.getSize();
+                        String name = torrent.getName();
+                        long totalSize = torrent.getSize();
                         List<String> fNames = new ArrayList<>();
                         for (TorrentFile tf : torrent.getFiles()) {
                             fNames.add(String.join("/", tf.getPathElements()));
                         }
-                        info.fileNames = fNames;
+                        ClientInfo info = activeClients.get(hashHex);
+                        if (info != null) {
+                            info.name = name;
+                            info.totalSize = totalSize;
+                            info.fileNames = fNames;
+                        }
                         logger.info("Magnet metadata resolved: {} ({} files, {} bytes)",
-                                info.name, fNames.size(), info.totalSize);
+                                name, fNames.size(), totalSize);
                     })
                     .build();
 
-            ClientInfo realInfo = new ClientInfo(client, info.name, info.totalSize, info.fileNames);
-            activeClients.put(hashHex, realInfo);
+            ClientInfo info = new ClientInfo(client, "magnet:" + hashHex, 0, new ArrayList<>());
+            activeClients.put(hashHex, info);
 
-            client.startAsync(state -> updateState(realInfo, state, hashHex), 1000);
+            client.startAsync(state -> updateState(info, state, hashHex), 1000);
 
             logger.info("Started magnet download: {}", hashHex);
             return new MagnetResult(hashHex);
@@ -520,46 +538,16 @@ public class JLibTorrentManager {
         } catch (Exception e) {
             logger.warn("Error shutting down BT runtime: {}", e.getMessage());
         }
-        if (upnpGateway != null) {
-            try {
-                upnpGateway.deletePortMapping(listenPort, "TCP");
-                upnpGateway.deletePortMapping(listenPort, "UDP");
-                logger.info("UPnP port {} unmapped", listenPort);
-            } catch (Exception e) {
-                logger.warn("Failed to remove UPnP mapping: {}", e.getMessage());
-            }
-        }
         logger.info("BT runtime shut down.");
     }
 
-    private static InetAddress findLocalAddress() {
-        try {
-            InetAddress fallback = null;
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface ni = interfaces.nextElement();
-                if (ni.isLoopback() || !ni.isUp()) continue;
-                Enumeration<InetAddress> addrs = ni.getInetAddresses();
-                while (addrs.hasMoreElements()) {
-                    InetAddress addr = addrs.nextElement();
-                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress() && !addr.isLinkLocalAddress()) {
-                        String host = addr.getHostAddress();
-                        if (!host.startsWith("172.17.")) {
-                            return addr;
-                        }
-                        if (fallback == null) fallback = addr;
-                    }
-                }
-            }
-            if (fallback != null) return fallback;
-        } catch (Exception e) {
-            LoggerFactory.getLogger(JLibTorrentManager.class).warn("Failed to detect local address: {}", e.getMessage());
-        }
-        try {
-            return InetAddress.getByName("0.0.0.0");
-        } catch (Exception e) {
-            return InetAddress.getLoopbackAddress();
-        }
+    private static String extractHashFromMagnet(String magnetUri) {
+        String prefix = "urn:btih:";
+        int start = magnetUri.indexOf(prefix);
+        if (start < 0) throw new IllegalArgumentException("Invalid magnet URI: " + magnetUri);
+        start += prefix.length();
+        int end = magnetUri.indexOf('&', start);
+        return (end > 0 ? magnetUri.substring(start, end) : magnetUri.substring(start)).toLowerCase();
     }
 
     static String toHex(byte[] bytes) {
@@ -575,14 +563,5 @@ public class JLibTorrentManager {
             out[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i + 1), 16));
         }
         return out;
-    }
-
-    static String extractHashFromMagnet(String magnetUri) {
-        String prefix = "urn:btih:";
-        int start = magnetUri.indexOf(prefix);
-        if (start < 0) throw new IllegalArgumentException("Invalid magnet URI: " + magnetUri);
-        start += prefix.length();
-        int end = magnetUri.indexOf('&', start);
-        return (end > 0 ? magnetUri.substring(start, end) : magnetUri.substring(start)).toLowerCase();
     }
 }

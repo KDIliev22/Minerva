@@ -8,10 +8,13 @@ public class MainApp {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
 
     public static void main(String[] args) {
+        // Bootstrap CDI (Weld) for jUPnP CDI integration
+        com.minerva.WeldBootstrap.start();
+
         // Read API port from environment variable, default to 4567
         int port = Integer.parseInt(System.getenv().getOrDefault("API_PORT", "4567"));
 
-        // Start the backend server
+        // Start the backend server (Javalin starts immediately)
         BackendServer server = new BackendServer();
         server.start(port);
 
