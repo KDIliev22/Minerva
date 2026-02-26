@@ -14,13 +14,14 @@
         </encoder>
     </appender>
     
-    <root level="INFO">
+    <root level="TRACE">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
-    
-    <logger name="com.minerva" level="DEBUG"/>
-    <logger name="bt" level="INFO"/>
-    <logger name="bt.peer.lan" level="WARN"/>
-    <logger name="bt.portmapping" level="INFO"/>
+
+    <logger name="com.minerva" level="TRACE"/>
+    <logger name="bt" level="TRACE"/>
+    <logger name="bt.dht" level="TRACE"/>
+    <logger name="bt.peer.lan" level="TRACE"/>
+    <logger name="bt.portmapping" level="TRACE"/>
 </configuration>

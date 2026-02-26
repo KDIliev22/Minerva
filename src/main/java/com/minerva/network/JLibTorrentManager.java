@@ -139,6 +139,22 @@ public class JLibTorrentManager {
         InetAddress localAddr = findLocalAddress();
         logger.info("Local address: {}", localAddr.getHostAddress());
 
+        // Setup DHT state directory robustly
+        File dhtStateDir = new File(saveDirectory, "dht");
+        if (dhtStateDir.isAbsolute()) {
+            // If absolute, make it relative to saveDirectory
+            dhtStateDir = new File(saveDirectory, dhtStateDir.getName());
+        }
+        final String dhtStatePath = dhtStateDir.getAbsolutePath();
+        if (!dhtStateDir.exists()) {
+            boolean created = dhtStateDir.mkdirs();
+            if (created) {
+                logger.info("Created DHT state directory: {}", dhtStatePath);
+            } else {
+                logger.warn("Failed to create DHT state directory: {}", dhtStatePath);
+            }
+        }
+
         Config config = new Config() {
             @Override public int getAcceptorPort() { return listenPort; }
             @Override public InetAddress getAcceptorAddress() { return localAddr; }
@@ -159,6 +175,11 @@ public class JLibTorrentManager {
             @Override
             public boolean shouldUseRouterBootstrap() {
                 return true; // Bootstrap from public DHT routers
+            }
+
+            // Not all DHTConfig versions declare getStoragePath() in the interface, so don't use @Override
+            public String getStoragePath() {
+                return dhtStatePath;
             }
         });
 
