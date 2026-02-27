@@ -31,7 +31,6 @@ public class DHTKeywordManager {
 
     // Hardcoded bootstrap Minerva nodes (you can add your own)
     private static final List<InetSocketAddress> BOOTSTRAP_NODES = Arrays.asList(
-            // Example: new InetSocketAddress("203.0.113.1", 4568)
                     new InetSocketAddress("87.120.14.80", 4568)
     );
 

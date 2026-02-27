@@ -8,6 +8,7 @@ import bt.dht.DHTModule;
 import bt.dht.DHTService;
 import bt.metainfo.TorrentFile;
 import bt.metainfo.TorrentId;
+import bt.net.InetPeerAddress;
 import bt.runtime.BtClient;
 import bt.runtime.BtRuntime;
 import bt.runtime.BtRuntimeBuilder;
@@ -16,13 +17,13 @@ import bt.torrent.TorrentSessionState;
 import bt.tracker.http.HttpTrackerModule;
 import bt.peerexchange.PeerExchangeModule;
 import bt.peer.lan.LocalServiceDiscoveryModule;
-
 import com.minerva.DummySelectorModule;
 import com.minerva.MinervaPortMapperModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
+// add this import
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -218,13 +219,22 @@ public class JLibTorrentManager {
             @Override public int getNumOfHashingThreads() { return 2; }
         };
 
-        DHTModule dhtModule = new DHTModule(new DHTConfig() {
-            @Override public boolean shouldUseRouterBootstrap() { return true; }
-            @Override public int getListeningPort() { return dhtPort; }
-            public String getStoragePath() {
-                return dhtStateDir.getAbsolutePath();
-            }
-        });
+DHTModule dhtModule = new DHTModule(new DHTConfig() {
+    @Override public boolean shouldUseRouterBootstrap() { return true; }
+    @Override public int getListeningPort() { return dhtPort; }
+    
+    @Override
+    public Collection<InetPeerAddress> getBootstrapNodes() {
+        return Arrays.asList(
+            new InetPeerAddress("dht.transmissionbt.com", 6881),
+            new InetPeerAddress("dht.libtorrent.org", 25401)
+        );
+    }
+    
+    public String getStoragePath() {
+        return dhtStateDir.getAbsolutePath();
+    }
+});
 
         BtRuntimeBuilder builder = BtRuntime.builder(config);
 
