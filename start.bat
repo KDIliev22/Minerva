@@ -5,6 +5,7 @@ REM Paths
 set CRAWLER_DIR=.\dht-crawler
 set CRAWLER_BIN=%CRAWLER_DIR%\crawler.exe
 set CRAWLER_URL=http://localhost:8080/peers
+set CIDR_FILE=%CRAWLER_DIR%\bg_cidrs.txt
 
 REM Check if crawler exists
 if not exist "%CRAWLER_BIN%" (
@@ -13,9 +14,15 @@ if not exist "%CRAWLER_BIN%" (
     exit /b 1
 )
 
+REM Check if CIDR file exists
+if not exist "%CIDR_FILE%" (
+    echo CIDR file not found: %CIDR_FILE%
+    exit /b 1
+)
+
 REM Start the crawler in a new window (minimized)
-echo Starting DHT crawler...
-start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080
+echo Starting DHT crawler with CIDR filter...
+start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080 -cidr "%CIDR_FILE%"
 
 REM Wait a bit for crawler to start
 timeout /t 2 /nobreak >nul
