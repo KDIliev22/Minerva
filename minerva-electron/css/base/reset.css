@@ -51,7 +51,6 @@ img {
   -ms-user-select: none;
 }
 
-/* Allow text selection inside input fields and textareas (for editing) */
 input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-user-select: text;
@@ -59,8 +58,7 @@ input, textarea, [contenteditable="true"] {
   -ms-user-select: text;
 }
 
-/* Prevent images from being dragged */
 img {
   -webkit-user-drag: none;
-  user-drag: none;  /* non‑standard but supported in most browsers */
+  user-drag: none;
 }

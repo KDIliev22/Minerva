@@ -1,5 +1,3 @@
-// Settings view – Backend log viewer
-
 let logPollInterval = null;
 
 export function loadSettings() {
@@ -34,7 +32,6 @@ export function loadSettings() {
     </div>
   `;
 
-  // Replace feather icons in the new DOM
   if (window.feather) feather.replace();
 
   const logOutput   = document.getElementById('logOutput');
@@ -47,7 +44,6 @@ export function loadSettings() {
       const lines = parseInt(logLines.value, 10);
       const text = await window.minerva.fetchLogs(lines);
       logOutput.textContent = text;
-      // Auto-scroll to bottom
       logOutput.scrollTop = logOutput.scrollHeight;
     } catch (err) {
       logOutput.textContent = `Error fetching logs: ${err.message}`;
@@ -65,7 +61,6 @@ export function loadSettings() {
     }
   });
 
-  // Initial fetch + auto-refresh
   fetchLogs();
   startLogPolling(fetchLogs);
 }
@@ -82,5 +77,4 @@ function stopLogPolling() {
   }
 }
 
-// Export so navigation can clean up
 export { stopLogPolling };

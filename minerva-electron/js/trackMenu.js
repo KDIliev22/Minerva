@@ -1,9 +1,8 @@
 import { addToQueue } from './queue.js';
 import { playlists } from './state.js';
-import { createPlaylist, setPlaylistCover } from './playlist.js'; // added setPlaylistCover
+import { createPlaylist, setPlaylistCover } from './playlist.js';
 import { loadPlaylists } from './playlist.js';
 
-// Prompt for playlist details (reused)
 async function promptForPlaylistDetails() {
   return new Promise((resolve) => {
     const old = document.getElementById('playlistPromptModal');
@@ -90,13 +89,11 @@ export function showTrackMenu(x, y, track, currentPlaylist) {
     min-width: 160px;
   `;
 
-  // Base menu items
   let menuHtml = `
     <div class="menu-item" data-action="add-to-queue">Add to queue</div>
     <div class="menu-item" data-action="add-to-playlist">Add to playlist...</div>
   `;
 
-  // Add "Set as playlist cover" if we are inside a non-system playlist
   if (currentPlaylist && !currentPlaylist.isSystem) {
     menuHtml += `<div class="menu-item" data-action="set-playlist-cover">Set as playlist cover</div>`;
   }
@@ -105,7 +102,6 @@ export function showTrackMenu(x, y, track, currentPlaylist) {
 
   document.body.appendChild(menu);
 
-  // Position menu within viewport
   const menuWidth = menu.offsetWidth;
   const menuHeight = menu.offsetHeight;
   const winWidth = window.innerWidth;
@@ -221,7 +217,7 @@ export function showPlaylistSelector(track) {
       });
 
       alert(`Track added to new playlist "${name}"`);
-      await loadPlaylists(); // from playlist.js
+      await loadPlaylists();
     } catch (err) {
       alert('Error: ' + err.message);
     }

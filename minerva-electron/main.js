@@ -5,7 +5,6 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const http = require('http');
 
-// Fix SUID sandbox issue when running as AppImage on Linux
 if (process.platform === 'linux' && process.env.APPIMAGE) {
   app.commandLine.appendSwitch('no-sandbox');
 }
@@ -14,7 +13,6 @@ let javaProcess;
 let mainWindow;
 let authServer = null;
 
-// ── Helpers for packaged vs. dev mode ──
 
 const isPackaged = app.isPackaged;
 
@@ -41,7 +39,6 @@ function javaExe() {
 
 const API_PORT = 4567;
 
-// ── Check if backend is already running (e.g. as a system service) ──
 
 async function isBackendRunning() {
   try {
@@ -52,7 +49,6 @@ async function isBackendRunning() {
   }
 }
 
-// ── Start / stop Java backend ──
 
 function startJavaBackend() {
   const jar = path.join(backendDir(), 'minerva-backend.jar');
@@ -91,8 +87,8 @@ function startJavaBackend() {
     cwd: root,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
-    shell: isWin,         // Use cmd.exe on Windows (bypasses SRP for whitelisted shells)
-    windowsHide: true,    // No console window flash
+    shell: isWin, 
+    windowsHide: true
   });
 
   javaProcess.stdout.on('data', (d) => console.log(`[Java] ${d}`));

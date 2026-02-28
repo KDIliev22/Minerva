@@ -1,20 +1,20 @@
-// trackPlayback.js (updated sections)
+
 
 import { audio, playPauseBtn, nowPlayingImg, nowPlayingTitle, nowPlayingArtist } from './domElements.js';
 import { allTracks } from './state.js';
-import { setQueue, queueTracks, queueIndex } from './queue.js'; // we need queueIndex and queueTracks
+import { setQueue, queueTracks, queueIndex } from './queue.js';
 
 export let currentTrackId = null;
 export let isPlaying = false;
 
-// Reset player to "Not Playing" state
+
 function clearNowPlaying() {
   nowPlayingTitle.textContent = 'Not Playing';
   nowPlayingArtist.textContent = '—';
   if (nowPlayingImg) {
-    // Hide the image (or set to a transparent pixel)
+
     nowPlayingImg.style.display = 'none';
-    // Optionally set src to empty to stop any request
+
     nowPlayingImg.src = '';
   }
   currentTrackId = null;
@@ -49,12 +49,12 @@ export async function playTrackById(id, setQueueFromAlbum = false) {
       nowPlayingTitle.textContent = track.title || 'Unknown';
       nowPlayingArtist.textContent = track.artist || '—';
 
-      // Show and update album art
+
       if (nowPlayingImg) {
-        nowPlayingImg.style.display = 'block'; // or 'inline-block' depending on layout
+        nowPlayingImg.style.display = 'block';
         nowPlayingImg.src = `http://127.0.0.1:4567/api/cover/${track.torrentHash}`;
         nowPlayingImg.onerror = () => {
-          nowPlayingImg.src = 'default_album.png'; // fallback
+          nowPlayingImg.src = 'default_album.png';
         };
       }
     }
@@ -72,4 +72,3 @@ export async function playTrackById(id, setQueueFromAlbum = false) {
   }
 }
 
-// Modify playNext in queue.js to call clearNowPlaying when queue ends

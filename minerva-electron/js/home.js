@@ -1,4 +1,3 @@
-// home.js
 import { contentDiv } from './domElements.js';
 import { allTracks } from './state.js';
 import { showAlbum } from './albumDetail.js';

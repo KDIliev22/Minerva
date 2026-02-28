@@ -1,6 +1,6 @@
 import { audio, playPauseBtn, volumeControl, nowPlayingImg, searchBtn, searchInput, uploadBtn } from './domElements.js';
 import { initAudio, togglePlayback, toggleExpand } from './audio.js';
-import { playPrevious, playNext, showQueue } from './queue.js';  // ✅ correct imports
+import { playPrevious, playNext, showQueue } from './queue.js';
 import { initNavigation } from './navigation.js';
 import { loadPlaylists, createPlaylist } from './playlist.js';
 import { loadHome } from './home.js';
@@ -8,27 +8,6 @@ import { performSearch } from './search.js';
 import { openUploadModal } from './upload.js';
 import { setAllTracks } from './state.js';
 import { resetPlayer } from './trackPlayback.js';
-
-
-// Fetch all tracks and store in state
-/* async function fetchAllTracks(retries = 5, delay = 2000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      console.log(`Fetch attempt ${i + 1}...`);
-      const tracks = await window.minerva.fetchTracks();
-      if (tracks && tracks.length > 0) {
-        setAllTracks(tracks);
-        return tracks;
-      }
-      // If empty, maybe backend not ready – retry
-    } catch (err) {
-      console.error(`Attempt ${i + 1} failed:`, err);
-    }
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  console.error('Failed to fetch tracks after multiple retries');
-  return [];
-} */
 
   async function fetchAllTracks(retries = 5, delay = 2000) {
   for (let i = 0; i < retries; i++) {
@@ -60,7 +39,6 @@ async function loadPlaylistsWithRetry(retries = 5, delay = 1000) {
   }
 }
 
-// Add create playlist button in sidebar
 function addCreatePlaylistButton() {
   const playlistsHeader = document.querySelector('.playlists h3');
   if (!playlistsHeader) return;
@@ -93,7 +71,6 @@ function addCreatePlaylistButton() {
 }
 
 async function init() {
-  // Add queue button
   
   const queueBtn = document.createElement('button');
   queueBtn.id = 'queueBtn';

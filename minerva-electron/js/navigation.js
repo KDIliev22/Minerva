@@ -10,7 +10,6 @@ export function initNavigation() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Stop polling when leaving views
       stopDownloadPolling();
       stopLogPolling();
       const view = btn.dataset.view;

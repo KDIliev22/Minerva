@@ -1,4 +1,4 @@
-// state.js
+ 
 export let allTracks = [];
 export let playlists = [];
 
@@ -10,7 +10,7 @@ export function setPlaylists(newPlaylists) {
   playlists = newPlaylists;
 }
 
-/** Re-fetch tracks from backend and update allTracks in-place. */
+
 export async function refreshAllTracks() {
   try {
     const tracks = await window.minerva.fetchTracks();

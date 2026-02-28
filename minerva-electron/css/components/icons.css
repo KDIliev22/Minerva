@@ -1,4 +1,3 @@
-/* Feather icon base */
 i[data-feather] {
   width: 1em;
   height: 1em;
@@ -9,12 +8,10 @@ i[data-feather] {
   fill: none;
 }
 
-/* Filled heart for liked state */
 .track-like-btn.liked i[data-feather="heart"] {
   fill: currentColor;
 }
 
-/* Specific icon sizes */
 .icon-xs {
   width: 14px;
   height: 14px;

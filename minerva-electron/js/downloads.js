@@ -1,11 +1,9 @@
-// downloads.js - Downloads tab with live torrent status
 import { contentDiv } from './domElements.js';
 
 const API_PORT = 4567;
 let pollInterval = null;
 
 export function loadDownloads() {
-  // Clear any previous polling
   if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
 
   contentDiv.innerHTML = `
@@ -25,8 +23,6 @@ export function loadDownloads() {
   if (window.feather) feather.replace();
 
   document.getElementById('dlRefreshBtn').addEventListener('click', fetchDownloads);
-
-  // Initial fetch + polling every 2s
   fetchDownloads();
   pollInterval = setInterval(fetchDownloads, 2000);
 }
@@ -85,7 +81,6 @@ function renderDownloads(downloads) {
   const stats = document.getElementById('dlStats');
   if (!list) return;
 
-  // Stats summary
   const downloading = downloads.filter(d => !d.seeding && !d.paused && d.state === 'DOWNLOADING');
   const seeding = downloads.filter(d => d.seeding);
   const totalDown = downloading.reduce((s, d) => s + d.downloadRate, 0);
@@ -106,7 +101,6 @@ function renderDownloads(downloads) {
     return;
   }
 
-  // Sort: downloading first, then checking, then seeding, then paused
   const order = { DOWNLOADING: 0, DOWNLOADING_METADATA: 1, CHECKING_FILES: 2, CHECKING_RESUME_DATA: 2, ALLOCATING: 3, FINISHED: 4, SEEDING: 5 };
   downloads.sort((a, b) => {
     if (a.paused && !b.paused) return 1;
@@ -147,7 +141,6 @@ function renderDownloads(downloads) {
       </div>`;
   }).join('');
 
-  // Attach control handlers
   list.querySelectorAll('.dl-ctrl-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();

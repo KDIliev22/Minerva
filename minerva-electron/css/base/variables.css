@@ -1,5 +1,4 @@
 :root {
-  /* Colors */
   --bg-primary: #121212;
   --bg-secondary: #181818;
   --bg-tertiary: #282828;
@@ -14,16 +13,12 @@
   --input-bg: #2a2a2a;
   --input-border: #444;
   --input-focus: #b9093a;
-
-  /* Spacing */
   --sp-xs: 4px;
   --sp-sm: 8px;
   --sp-md: 12px;
   --sp-lg: 20px;
   --sp-xl: 30px;
   --sp-xxl: 40px;
-
-  /* Font sizes – fluid using clamp */
   --fs-xs: clamp(10px, 1vw, 12px);
   --fs-sm: clamp(12px, 1.2vw, 14px);
   --fs-md: clamp(14px, 1.5vw, 16px);
@@ -31,22 +26,16 @@
   --fs-xl: clamp(18px, 2vw, 20px);
   --fs-xxl: clamp(24px, 3vw, 28px);
   --fs-xxxl: clamp(28px, 4vw, 32px);
-
-  /* Dimensions – fluid using vw/vh */
   --sidebar-width: min(240px, 20vw);
   --player-height: min(90px, 10vh);
   --cover-sm: min(40px, 6vw);
   --cover-md: min(60px, 8vw);
   --cover-lg: min(120px, 15vw);
   --cover-xl: min(250px, 25vw);
-
-  /* Border radius */
   --radius-sm: 3px;
   --radius-md: 5px;
   --radius-lg: 8px;
   --radius-xl: 10px;
   --radius-full: 9999px;
-
-  /* Transitions */
   --transition: 0.2s ease;
 }

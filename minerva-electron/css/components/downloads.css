@@ -1,4 +1,3 @@
-/* Downloads tab styles */
 .downloads-header {
   display: flex;
   justify-content: space-between;
@@ -26,7 +25,6 @@
   background: var(--bg-elevated, #333);
 }
 
-/* Stats bar */
 .downloads-stats {
   display: flex;
   gap: 16px;
@@ -53,7 +51,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Download list */
 .downloads-list {
   display: flex;
   flex-direction: column;
@@ -66,7 +63,6 @@
 }
 .dl-error { color: #e74c3c; }
 
-/* Individual download item */
 .dl-item {
   background: var(--bg-tertiary, #282828);
   border-radius: 8px;
@@ -121,7 +117,6 @@
   color: #e74c3c;
 }
 
-/* Progress bar */
 .dl-progress-row {
   display: flex;
   align-items: center;
@@ -152,7 +147,6 @@
   text-align: right;
 }
 
-/* Details row */
 .dl-details {
   display: flex;
   align-items: center;

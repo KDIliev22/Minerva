@@ -34,7 +34,6 @@ function renderPlaylistSidebar() {
   });
 }
 
-// Custom prompt for playlist creation
 async function promptForPlaylistDetails() {
   return new Promise((resolve) => {
     const old = document.getElementById('playlistPromptModal');
@@ -158,17 +157,15 @@ function renderPlaylistDetail(playlist) {
     </div>
   `).join('');
 
-  // Determine cover image URL
   let coverUrl;
   if (playlist.isSystem && playlist.name === 'Liked Songs') {
-    coverUrl = 'liked_songs_icon.png'; // special icon for Liked Songs
+    coverUrl = 'liked_songs_icon.png';
   } else if (playlist.iconPath) {
     coverUrl = `http://127.0.0.1:4567/api/cover/${playlist.iconPath}`;
   } else {
     coverUrl = 'default_playlist_cover.png';
   }
 
-  // Playlist header with cover image and edit/delete buttons (only for non-system)
   contentDiv.innerHTML = `
     <div class="playlist-header" style="display: flex; gap: 20px; align-items: center;">
       <img src="${coverUrl}" 
@@ -200,7 +197,6 @@ function renderPlaylistDetail(playlist) {
     btn.addEventListener('click', (e) => {
       const id = e.target.dataset.id;
       const track = tracks.find(t => t.id === id);
-      // Pass current playlist to showTrackMenu so it knows we're inside a playlist
       showTrackMenu(e.clientX, e.clientY, track, playlist);
     });
   });
@@ -226,7 +222,6 @@ export async function deletePlaylist(id) {
   }
 }
 
-// Edit playlist modal
 function showEditPlaylistModal(playlist) {
   const old = document.getElementById('editPlaylistModal');
   if (old) old.remove();
@@ -300,36 +295,30 @@ function showEditPlaylistModal(playlist) {
   });
 }
 
-// New function: set playlist cover from a track
-// Add/update this function in playlist.js
 export async function setPlaylistCover(playlistId, trackId) {
   try {
-    // Find the track to get its torrent hash
     const track = allTracks.find(t => t.id === trackId);
     if (!track) {
       alert('Track not found');
       return;
     }
-    const torrentHash = track.torrentHash; // use torrent hash for album art
+    const torrentHash = track.torrentHash;
 
-    // First fetch current playlist to get existing data
     const getResponse = await fetch(`http://127.0.0.1:4567/api/playlists/${playlistId}`);
     if (!getResponse.ok) throw new Error('Failed to fetch playlist');
     const playlist = await getResponse.json();
 
-    // Update with new iconPath (torrent hash)
     const updateResponse = await fetch(`http://127.0.0.1:4567/api/playlists/${playlistId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: playlist.name,
         description: playlist.description,
-        iconPath: torrentHash   // store torrent hash as the cover reference
+        iconPath: torrentHash
       })
     });
     if (!updateResponse.ok) throw new Error('Failed to update playlist cover');
 
-    // Reload playlist detail to show new cover
     loadPlaylistDetail(playlistId);
   } catch (err) {
     alert('Error setting playlist cover: ' + err.message);
