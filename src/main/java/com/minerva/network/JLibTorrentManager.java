@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
-// add this import
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,8 +37,6 @@ import java.util.stream.Collectors;
 public class JLibTorrentManager {
     private static final Logger logger = LoggerFactory.getLogger(JLibTorrentManager.class);
     private static JLibTorrentManager instance;
-
-    // Fixed discovery infohash = SHA-1 of "minerva-discovery"
     private static final TorrentId DISCOVERY_TORRENT_ID;
     static {
         try {
@@ -142,13 +139,11 @@ public class JLibTorrentManager {
         logger.warn("Failed to enumerate network interfaces", e);
     }
 
-    // Fallback: connect to a public DNS to get the outgoing interface address
     try (final DatagramSocket socket = new DatagramSocket()) {
         InetAddress dns;
         try {
             dns = InetAddress.getByName("8.8.8.8");
         } catch (UnknownHostException e) {
-            // Fallback to localhost
             try {
                 return InetAddress.getLocalHost();
             } catch (UnknownHostException ex) {
@@ -237,16 +232,13 @@ DHTModule dhtModule = new DHTModule(new DHTConfig() {
 });
 
         BtRuntimeBuilder builder = BtRuntime.builder(config);
-
-// Try to disable default modules (avoids auto-loading LSD, PEX, tracker, etc.)
-// Manually add all modules we need
 this.runtime = BtRuntime.builder(config)
         .module(dhtModule)
         .module(new HttpTrackerModule())
         .module(new PeerExchangeModule())
         .module(new MinervaPortMapperModule())
-        .module(new DummySelectorModule())   // <-- add this line
-        .build(); // your patched LSD module
+        .module(new DummySelectorModule())
+        .build();
 
         this.dhtService = runtime.service(DHTService.class);
         if (this.dhtService != null) {

@@ -80,8 +80,7 @@ public class TorrentMetadata {
     
     @JsonProperty("minerva_suffix")
     private final boolean minervaSuffix = true;
-    
-    // Getters and setters
+
     public String getTorrentId() { return torrentId; }
     public void setTorrentId(String torrentId) { this.torrentId = torrentId; }
     

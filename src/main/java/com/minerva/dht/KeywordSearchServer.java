@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +22,7 @@ public class KeywordSearchServer {
     private final int port;
     private final int listenPort;
     private final LibraryManager libraryManager;
-    private final DHTKeywordManager dhtKeywordManager;  // added
+    private final DHTKeywordManager dhtKeywordManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ServerSocket serverSocket;
     private ExecutorService executor;
@@ -31,7 +32,7 @@ public class KeywordSearchServer {
         this.port = port;
         this.libraryManager = libraryManager;
         this.listenPort = listenPort;
-        this.dhtKeywordManager = dhtKeywordManager;  // store reference
+        this.dhtKeywordManager = dhtKeywordManager;
     }
 
     public void start() throws IOException {
@@ -63,6 +64,7 @@ public class KeywordSearchServer {
         try (socket;
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
              PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)) {
+
             // Minerva handshake
             String handshake = in.readLine();
             if (!"MINERVA1".equals(handshake)) {
@@ -70,15 +72,27 @@ public class KeywordSearchServer {
                 return;
             }
             out.println("MINERVA1");
+
             String keyword = in.readLine();
             if (keyword == null) return;
             logger.debug("Received keyword query: {}", keyword);
+
             // Only respond to queries with .minerva suffix
             if (!keyword.toLowerCase().endsWith(".minerva")) {
                 logger.debug("Ignoring non-minerva keyword query: {}", keyword);
                 out.println("[]");
                 return;
             }
+
+            // ---- Add the requester to the Minerva peer cache ----
+            // We assume the client listens on the same port as this server (the common SEARCH_PORT).
+            if (!socket.getInetAddress().isLoopbackAddress()) {
+                InetSocketAddress peerAddr = new InetSocketAddress(socket.getInetAddress(), port);
+                dhtKeywordManager.addDiscoveryPeer(peerAddr);
+                logger.debug("Added requester {} as potential Minerva peer", peerAddr);
+            }
+            // ------------------------------------------------------
+
             // Remove .minerva suffix for local search
             String searchKeyword = keyword.substring(0, keyword.length() - ".minerva".length());
             List<MusicFile> tracks = libraryManager.searchLocal(searchKeyword);
@@ -97,10 +111,11 @@ public class KeywordSearchServer {
                             t.getGenre(),
                             t.getYear(),
                             listenPort,
-                            peerStrings))   // include the list
+                            peerStrings))
                     .toList();
             String json = objectMapper.writeValueAsString(results);
             out.println(json);
+
         } catch (Exception e) {
             logger.error("Error handling keyword query", e);
         }
@@ -124,7 +139,7 @@ public class KeywordSearchServer {
             this.genre = genre;
             this.year = year;
             this.listenPort = listenPort;
-            this.peers = List.copyOf(peers);  // convert to list for JSON
+            this.peers = List.copyOf(peers);
         }
     }
 }

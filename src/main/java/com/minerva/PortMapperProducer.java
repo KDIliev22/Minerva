@@ -13,7 +13,7 @@ public class PortMapperProducer {
     @PortMapping
     public Set<PortMapper> producePortMappers() {
         Set<PortMapper> portMappers = new HashSet<>();
-        portMappers.add(new UpnpPortMapper());  // your UPnP implementation
+        portMappers.add(new UpnpPortMapper());
         return portMappers;
     }
 }

@@ -1,12 +1,9 @@
 <configuration>
-    <!-- Console appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-
-    <!-- Rolling file appender -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/minerva.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -17,15 +14,11 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-
-    <!-- Set log levels for specific packages -->
     <logger name="io.javalin" level="INFO"/>
     <logger name="org.eclipse.jetty" level="WARN"/>
     <logger name="com.minerva.dht" level="DEBUG"/>
     <logger name="com.minerva.library" level="DEBUG"/>
     <logger name="com.minerva.network" level="DEBUG"/>
-
-    <!-- Root logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>

@@ -40,7 +40,6 @@ public class MusicFile {
     private String comment;
     private Map<String, String> additionalMetadata = new HashMap<>();
     
-    // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     

@@ -9,7 +9,6 @@ public class User {
     private long downloadedFiles;
     private double shareRatio;
     
-    // Getters and setters
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     

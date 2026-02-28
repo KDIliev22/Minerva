@@ -12,7 +12,6 @@ public class Album {
     private List<MusicFile> tracks;
     private int totalTracks;
     
-    // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     
