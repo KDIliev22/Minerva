@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,7 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
-
+import java.util.stream.Collectors;
 public class DHTKeywordManager {
     private static final Logger logger = LoggerFactory.getLogger(DHTKeywordManager.class);
     private final int localSearchPort;
@@ -29,10 +33,8 @@ public class DHTKeywordManager {
     private final ScheduledExecutorService crawlerPoller;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Hardcoded bootstrap Minerva nodes (you can add your own)
-    private static final List<InetSocketAddress> BOOTSTRAP_NODES = Arrays.asList(
-                    new InetSocketAddress("87.120.14.80", 4568)
-    );
+    // Bootstrap file name (in working directory)
+    private static final String BOOTSTRAP_FILE = "bootstrap_nodes.txt";
 
     public DHTKeywordManager(int searchPort, JLibTorrentManager torrentManager) {
         this(searchPort, torrentManager, null);
@@ -43,16 +45,15 @@ public class DHTKeywordManager {
         this.torrentManager = torrentManager;
         this.crawlerUrl = crawlerUrl;
 
-        // Load cached peers
+        // Load cached peers from previous runs
         Set<InetSocketAddress> cached = PeerCache.load();
         discoveryPeers.addAll(cached);
         logger.info("Loaded {} cached Minerva peers", cached.size());
 
-        // Add hardcoded bootstrap nodes
-        discoveryPeers.addAll(BOOTSTRAP_NODES);
-        if (!BOOTSTRAP_NODES.isEmpty()) {
-            logger.info("Added {} hardcoded bootstrap nodes", BOOTSTRAP_NODES.size());
-        }
+        // Load bootstrap nodes from file (if exists), otherwise use hardcoded fallback
+        Set<InetSocketAddress> bootstrapNodes = loadBootstrapNodes();
+        discoveryPeers.addAll(bootstrapNodes);
+        logger.info("Loaded {} bootstrap nodes", bootstrapNodes.size());
 
         // Start polling the crawler if URL is provided
         if (crawlerUrl != null && !crawlerUrl.isEmpty()) {
@@ -72,6 +73,45 @@ public class DHTKeywordManager {
         }));
 
         logger.info("DHTKeywordManager initialized, search port {}", localSearchPort);
+    }
+
+    private Set<InetSocketAddress> loadBootstrapNodes() {
+        Path path = Paths.get(BOOTSTRAP_FILE);
+        if (Files.exists(path)) {
+            try {
+                List<String> lines = Files.readAllLines(path);
+                Set<InetSocketAddress> nodes = new HashSet<>();
+                for (String line : lines) {
+                    line = line.trim();
+                    if (line.isEmpty() || line.startsWith("#")) continue;
+                    String[] parts = line.split(":");
+                    if (parts.length == 2) {
+                        try {
+                            String host = parts[0];
+                            int port = Integer.parseInt(parts[1]);
+                            InetSocketAddress addr = new InetSocketAddress(host, port);
+                            if (!addr.isUnresolved()) {
+                                nodes.add(addr);
+                            } else {
+                                logger.warn("Unresolved bootstrap node: {}", line);
+                            }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Invalid port in bootstrap line: {}", line);
+                        }
+                    } else {
+                        logger.warn("Invalid bootstrap line (should be host:port): {}", line);
+                    }
+                }
+                logger.info("Loaded {} bootstrap nodes from {}", nodes.size(), BOOTSTRAP_FILE);
+                return nodes;
+            } catch (IOException e) {
+                logger.warn("Failed to read bootstrap file, using hardcoded fallback", e);
+            }
+        }
+        // Fallback hardcoded list
+        return new HashSet<>(Arrays.asList(
+            new InetSocketAddress("87.120.14.80", 4568)
+        ));
     }
 
     private void pollCrawler() {

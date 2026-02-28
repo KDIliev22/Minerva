@@ -23,7 +23,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
+import bt.data.Storage;
+import bt.dht.DHTService;
+import bt.metainfo.TorrentId;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 public class BackendServer {
     private final LibraryManager libraryManager;
     private final JLibTorrentManager torrentManager;
@@ -89,6 +94,41 @@ public class BackendServer {
                 }
             }, "DownloadImport-" + hashHex.substring(0, Math.min(8, hashHex.length()))).start();
         });
+
+        // ... after setting download callback ...
+
+String minervaInfohash = "2a242fcb7604ddcf795af2c60546a1b7e2be3f40"; // your private network infohash
+TorrentId minervaId = TorrentId.fromBytes(hexToBytes(minervaInfohash));
+
+ScheduledExecutorService announcer = Executors.newSingleThreadScheduledExecutor();
+announcer.scheduleAtFixedRate(() -> {
+    try {
+        DHTService dhtService = torrentManager.getDHTService();
+        if (dhtService != null) {
+            // Debug: print all methods of the actual implementation class
+            for (java.lang.reflect.Method m : dhtService.getClass().getMethods()) {
+                if (m.getName().toLowerCase().contains("announ")) { // catches announce, announcing, etc.
+                    logger.info("Found method: " + m.toGenericString());
+                }
+            }
+
+            // Now, based on what you see, call the correct method.
+            // For example, if you see 'public void announce(TorrentId, int)'
+            // then use: dhtService.announce(minervaId, torrentManager.getListenPort());
+
+            // For now, we'll just log that we're here
+            logger.info("DHTService obtained, but announce method unknown.");
+        } else {
+            logger.warn("DHTService not available – cannot announce");
+        }
+    } catch (Exception e) {
+        logger.error("Failed to announce", e);
+    }
+}, 1, 30, TimeUnit.MINUTES);
+// Store the announcer if you need to shut it down later (optional)
+// this.announcer = announcer;
+
+// ... rest of constructor (DHTKeywordManager, KeywordSearchServer) ...
 
         this.dhtKeywordManager = new DHTKeywordManager(searchPort, torrentManager, crawlerUrl);
         try {
@@ -579,6 +619,16 @@ public class BackendServer {
         return name.replaceAll("[\\\\/:*?\"<>|]", "_")
                    .replaceAll("\\s+", "_")
                    .trim();
+    }
+
+    private static byte[] hexToBytes(String hex) {
+    int len = hex.length();
+    byte[] out = new byte[len / 2];
+    for (int i = 0; i < len; i += 2) {
+        out[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                             + Character.digit(hex.charAt(i + 1), 16));
+    }
+    return out;
     }
 
     public static void main(String[] args) {

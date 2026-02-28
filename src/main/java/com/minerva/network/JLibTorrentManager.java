@@ -462,6 +462,10 @@ this.runtime = BtRuntime.builder(config)
         return s;
     }
 
+    public DHTService getDHTService() {
+        return dhtService;
+    }
+
     public double getProgress(String hashHex) {
         ClientInfo info = activeClients.get(hashHex);
         if (info == null || info.lastState == null) return 0.0;

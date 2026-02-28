@@ -1,3 +1,28 @@
-✅ Loaded 1826 Bulgarian CIDR ranges
-🚀 DHT crawler started – only storing BG peers
-🌍 HTTP server listening on :8080
+DHT server started on port 6882
+HTTP server listening on :8080
+[2026-02-28 19:30:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:31:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:32:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:33:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:34:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:35:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:36:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:37:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:38:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:39:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:40:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:41:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"
+[2026-02-28 19:42:59 +0200 ERR github.com/anacrolix/dht/v2 server.go:1422]
+  msg="error bootstrapping during bucket refresh: no initial nodes"

@@ -1,76 +1,92 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
-	"os"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/shiyanhui/dht"
+	"github.com/anacrolix/dht/v2"
+	"github.com/anacrolix/torrent/metainfo"
 )
 
 var (
-	peerMutex     sync.RWMutex
-	peerSet       = make(map[string]bool) // only BG peers
-	lastCleanup   = time.Now()
-	maxPeers      = 50000
-	bulgariaCIDRs []*net.IPNet // loaded from file
+	peerMutex   sync.RWMutex
+	peerSet     = make(map[string]bool)
+	lastCleanup = time.Now()
+	maxPeers    = 50000
 )
 
 func main() {
 	var httpAddr string
-	var cidrFile string
+	var dhtPort int
+	var bootstrapList string
+	var targetInfohash string
+
 	flag.StringVar(&httpAddr, "http", ":8080", "HTTP server address")
-	flag.StringVar(&cidrFile, "cidr", "bg_cidrs.txt", "File with one CIDR per line (Bulgarian ranges)")
+	flag.IntVar(&dhtPort, "dht-port", 6881, "DHT UDP port")
+	flag.StringVar(&bootstrapList, "bootstrap", "", "Comma-separated bootstrap nodes (host:port)")
+	flag.StringVar(&targetInfohash, "infohash", "", "Only store announces with this exact infohash (40-char hex)")
 	flag.Parse()
 
-	// 1. Load Bulgarian CIDR ranges
-	if err := loadCIDRs(cidrFile); err != nil {
-		panic(fmt.Sprintf("Failed to load CIDR file: %v", err))
+	// Create UDP socket for DHT
+	conn, err := net.ListenPacket("udp", fmt.Sprintf("0.0.0.0:%d", dhtPort))
+	if err != nil {
+		panic(fmt.Sprintf("Failed to listen on UDP port %d: %v", dhtPort, err))
 	}
-	fmt.Printf("✅ Loaded %d Bulgarian CIDR ranges\n", len(bulgariaCIDRs))
+	defer conn.Close()
 
-	// 2. Create crawler config
-	config := dht.NewCrawlConfig()
-	config.MaxNodes = 20000
-	config.BlackListMaxSize = 5000
-
-	// 3. Callback – only accept peers from Bulgaria
-	config.OnAnnouncePeer = func(infoHash, ip string, port int) {
-		if ip == "" || port <= 0 || port > 65535 {
-			return
+	// Prepare bootstrap nodes if provided
+	var startingNodes dht.StartingNodesGetter
+	if bootstrapList != "" {
+		// Parse bootstrap list into host:port strings
+		var hosts []string
+		for _, node := range strings.Split(bootstrapList, ",") {
+			node = strings.TrimSpace(node)
+			if node != "" {
+				hosts = append(hosts, node)
+			}
 		}
-
-		// Check if IP is Bulgarian
-		if !isBulgarianIP(ip) {
-			return // ignore non-BG peers
+		// Resolve them to dht.Addr
+		addrs, err := dht.ResolveHostPorts(hosts)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to resolve bootstrap nodes: %v", err))
 		}
-
-		peerAddr := fmt.Sprintf("%s:%d", ip, port)
-
-		peerMutex.Lock()
-		defer peerMutex.Unlock()
-
-		if len(peerSet) < maxPeers {
-			peerSet[peerAddr] = true
+		// StartingNodes is a function that returns these addresses
+		startingNodes = func() ([]dht.Addr, error) {
+			return addrs, nil
 		}
-
-		if time.Since(lastCleanup) > 10*time.Minute {
-			lastCleanup = time.Now()
-		}
+		fmt.Printf("Using bootstrap nodes: %v\n", hosts)
+	} else {
+		// If no bootstrap list, rely on library's default bootstrap
+		startingNodes = nil
 	}
 
-	// 4. Start DHT crawler
-	d := dht.New(config)
-	go d.Run()
-	fmt.Println("🚀 DHT crawler started – only storing BG peers")
+	// Create server configuration
+	conf := dht.NewDefaultServerConfig()
+	conf.Conn = conn
+	conf.StartingNodes = startingNodes
+	// Set announce callback
+	conf.OnAnnouncePeer = func(infoHash metainfo.Hash, ip net.IP, port int, portOk bool) {
+		processAnnounce(infoHash, ip, port, targetInfohash)
+	}
 
-	// 5. HTTP endpoint for Java
+	s, err := dht.NewServer(conf)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to start DHT server: %v", err))
+	}
+	defer s.Close()
+
+	fmt.Printf("DHT server started on port %d\n", dhtPort)
+
+	// Start routing table maintenance
+	go s.TableMaintainer()
+
+	// HTTP endpoint for Java to fetch discovered peers
 	http.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
 		peerMutex.RLock()
 		defer peerMutex.RUnlock()
@@ -84,47 +100,33 @@ func main() {
 		json.NewEncoder(w).Encode(peers)
 	})
 
-	fmt.Printf("🌍 HTTP server listening on %s\n", httpAddr)
+	fmt.Printf("HTTP server listening on %s\n", httpAddr)
 	if err := http.ListenAndServe(httpAddr, nil); err != nil {
 		panic(err)
 	}
 }
 
-// loadCIDRs reads a file with one CIDR per line and stores them in bulgariaCIDRs
-func loadCIDRs(path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
+func processAnnounce(infoHash metainfo.Hash, ip net.IP, port int, targetInfohash string) {
+	infoHashHex := fmt.Sprintf("%x", infoHash[:])
+	if targetInfohash != "" && infoHashHex != targetInfohash {
+		return
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Skip empty lines and comments
-		if line == "" || line[0] == '#' {
-			continue
-		}
-		_, ipnet, err := net.ParseCIDR(line)
-		if err != nil {
-			fmt.Printf("⚠️  Skipping invalid CIDR: %s\n", line)
-			continue
-		}
-		bulgariaCIDRs = append(bulgariaCIDRs, ipnet)
+	ipStr := ip.String()
+	if ipStr == "" || port == 0 {
+		return
 	}
-	return scanner.Err()
-}
 
-// isBulgarianIP checks if an IP belongs to any of the loaded Bulgarian CIDR ranges
-func isBulgarianIP(ipStr string) bool {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return false
+	peerAddr := fmt.Sprintf("%s:%d", ipStr, port)
+
+	peerMutex.Lock()
+	defer peerMutex.Unlock()
+
+	if len(peerSet) < maxPeers {
+		peerSet[peerAddr] = true
 	}
-	for _, cidr := range bulgariaCIDRs {
-		if cidr.Contains(ip) {
-			return true
-		}
+
+	if time.Since(lastCleanup) > 10*time.Minute {
+		lastCleanup = time.Now()
 	}
-	return false
 }
