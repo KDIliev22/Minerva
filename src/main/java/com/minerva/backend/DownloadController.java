@@ -1,5 +1,6 @@
 package com.minerva.backend;
 
+import com.minerva.dht.DHTKeywordManager;
 import com.minerva.network.JLibTorrentManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
@@ -20,21 +21,36 @@ public class DownloadController {
     private final Path torrentsPath;
     private final ObjectMapper objectMapper;
     private final Map<String, Map<String, Object>> pendingDownloads;
+    private final DHTKeywordManager dhtKeywordManager;
 
     public DownloadController(JLibTorrentManager torrentManager, Path torrentsPath,
                               ObjectMapper objectMapper,
-                              Map<String, Map<String, Object>> pendingDownloads) {
+                              Map<String, Map<String, Object>> pendingDownloads,
+                              DHTKeywordManager dhtKeywordManager) {
         this.torrentManager = torrentManager;
         this.torrentsPath = torrentsPath;
         this.objectMapper = objectMapper;
         this.pendingDownloads = pendingDownloads;
+        this.dhtKeywordManager = dhtKeywordManager;
     }
 
     @SuppressWarnings("unchecked")
     public void register(Javalin app) {
         app.post("/api/fetch-torrent/{hash}", ctx -> {
             String hash = ctx.pathParam("hash");
-            String magnet = "magnet:?xt=urn:btih:" + hash;
+            StringBuilder magnetBuilder = new StringBuilder("magnet:?xt=urn:btih:").append(hash);
+
+            // Append known peers as x.pe hints for immediate connection
+            Set<String> knownPeers = dhtKeywordManager.getPeersForTorrent(hash);
+            if (!knownPeers.isEmpty()) {
+                for (String peerEndpoint : knownPeers) {
+                    magnetBuilder.append("&x.pe=").append(peerEndpoint);
+                }
+                logger.info("Added {} known peer(s) to magnet for {}: {}",
+                        knownPeers.size(), hash, knownPeers);
+            }
+
+            String magnet = magnetBuilder.toString();
             try {
                 String body = ctx.body();
                 Map<String, Object> metadata = null;

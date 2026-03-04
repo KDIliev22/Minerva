@@ -13,7 +13,7 @@ fi
 
 # Start crawler as seed (no bootstrap)
 echo "Starting DHT crawler (seed) with infohash $INFOHASH..."
-"$CRAWLER_BIN" -http :8080 -dht-port 6882 -infohash "$INFOHASH" > crawler.log 2>&1 &
+"$CRAWLER_BIN" -http :8080 -dht-port 6881 -infohash "$INFOHASH" > crawler.log 2>&1 &
 CRAWLER_PID=$!
 
 sleep 2

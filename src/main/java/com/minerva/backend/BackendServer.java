@@ -130,7 +130,7 @@ public class BackendServer {
             } catch (Exception e) {
                 logger.error("Failed to announce on DHT", e);
             }
-        }, 1, 30, TimeUnit.MINUTES);
+        }, 30, 10, TimeUnit.SECONDS);
     }
 
     public void start(int port) {
@@ -151,7 +151,7 @@ public class BackendServer {
         new SystemController().register(app);
         new LibraryController(libraryManager, projectRoot, albumArtPath, objectMapper).register(app);
         new PlaylistController(playlistManager, objectMapper).register(app);
-        new DownloadController(torrentManager, torrentsPath, objectMapper, pendingDownloads).register(app);
+        new DownloadController(torrentManager, torrentsPath, objectMapper, pendingDownloads, dhtKeywordManager).register(app);
         new SearchController(dhtKeywordManager).register(app);
 
         logger.info("Javalin started on port {}", port);

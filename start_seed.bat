@@ -13,7 +13,7 @@ if not exist "%CRAWLER_BIN%" (
 )
 
 echo Starting DHT crawler (seed) with infohash %INFOHASH%...
-start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080 -dht-port 6882 -infohash %INFOHASH%
+start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080 -dht-port 6881 -infohash %INFOHASH%
 
 timeout /t 2 /nobreak >nul
 

@@ -4,7 +4,7 @@ CRAWLER_DIR="./dht-crawler"
 CRAWLER_BIN="$CRAWLER_DIR/crawler"
 CRAWLER_URL="http://localhost:8080/peers"
 INFOHASH="2a242fcb7604ddcf795af2c60546a1b7e2be3f40"
-BOOTSTRAP="87.120.14.80:6882"   # <-- hardcoded bootstrap IP
+BOOTSTRAP="87.120.14.80:6881"   # <-- hardcoded bootstrap IP
 
 if [ ! -f "$CRAWLER_BIN" ]; then
     echo "Crawler binary not found. Please build it first:"
@@ -13,7 +13,7 @@ if [ ! -f "$CRAWLER_BIN" ]; then
 fi
 
 echo "Starting DHT crawler (peer) with bootstrap $BOOTSTRAP ..."
-"$CRAWLER_BIN" -http :8080 -dht-port 6882 -bootstrap "$BOOTSTRAP" -infohash "$INFOHASH" > crawler.log 2>&1 &
+"$CRAWLER_BIN" -http :8080 -dht-port 6881 -bootstrap "$BOOTSTRAP" -infohash "$INFOHASH" > crawler.log 2>&1 &
 CRAWLER_PID=$!
 
 sleep 2

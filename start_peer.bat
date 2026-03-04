@@ -5,7 +5,7 @@ set CRAWLER_DIR=.\dht-crawler
 set CRAWLER_BIN=%CRAWLER_DIR%\crawler.exe
 set CRAWLER_URL=http://localhost:8080/peers
 set INFOHASH=2a242fcb7604ddcf795af2c60546a1b7e2be3f40
-set BOOTSTRAP=87.120.14.80:6882
+set BOOTSTRAP=87.120.14.80:6881
 
 if not exist "%CRAWLER_BIN%" (
     echo Crawler binary not found. Please build it first:
@@ -14,7 +14,7 @@ if not exist "%CRAWLER_BIN%" (
 )
 
 echo Starting DHT crawler (peer) with bootstrap %BOOTSTRAP%...
-start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080 -dht-port 6882 -bootstrap "%BOOTSTRAP%" -infohash %INFOHASH%
+start /min "Minerva Crawler" "%CRAWLER_BIN%" -http :8080 -dht-port 6881 -bootstrap "%BOOTSTRAP%" -infohash %INFOHASH%
 
 timeout /t 2 /nobreak >nul
 
