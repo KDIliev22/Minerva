@@ -233,6 +233,7 @@ public class JLibTorrentManager {
         .module(new PeerExchangeModule())
         .module(new MinervaPortMapperModule())
         .module(new DummySelectorModule())
+        .disableAutomaticShutdown()
         .build();
 
         this.dhtService = runtime.service(DHTService.class);
