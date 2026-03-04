@@ -1,6 +1,7 @@
 import { contentDiv } from './domElements.js';
 import { allTracks } from './state.js';
 import { showAlbum } from './albumDetail.js';
+import { escapeHtml } from './utils.js';
 
 export async function loadHome() {
   try {
@@ -54,11 +55,11 @@ export async function loadHome() {
         <div class="horizontal-scroll">
           ${section.items.map(album => `
             <div class="album-card" data-artist="${album.artist}" data-album="${album.album}" data-cover-id="${album.coverTrackId}">
-              <img class="album-card-cover" src="http://127.0.0.1:4567/api/cover/${album.coverTrackId}" 
+              <img class="album-card-cover" src="http://127.0.0.1:4567/api/cover/${encodeURIComponent(album.coverTrackId)}" 
                    onerror="this.onerror=null; this.src='default_album.png';">
               <div class="album-card-info">
-                <div class="album-card-title">${album.album || 'Unknown'}</div>
-                <div class="album-card-artist">${album.artist || 'Unknown'}</div>
+                <div class="album-card-title">${escapeHtml(album.album || 'Unknown')}</div>
+                <div class="album-card-artist">${escapeHtml(album.artist || 'Unknown')}</div>
               </div>
             </div>
           `).join('')}

@@ -1,5 +1,6 @@
 // discover.js
 import { contentDiv } from './domElements.js';
+import { escapeHtml } from './utils.js';
 
 let currentFilter = 'all'; // 'all', 'albums', 'singles'
 let lastResults = [];
@@ -98,34 +99,34 @@ function renderDiscoverResults(results) {
       // Single track card
       const track = group.tracks[0];
       return `
-        <div class="discover-card discover-single" data-hash="${group.torrentHash}">
-          <img class="discover-cover" src="http://127.0.0.1:4567/api/cover/${group.torrentHash}" 
+        <div class="discover-card discover-single" data-hash="${escapeHtml(group.torrentHash)}">
+          <img class="discover-cover" src="http://127.0.0.1:4567/api/cover/${encodeURIComponent(group.torrentHash)}" 
                onerror="this.src='assets/default_album.png';">
           <div class="discover-info">
-            <span class="discover-title">${track.title || 'Unknown'}</span>
-            <span class="discover-artist">${track.artist || 'Unknown'}</span>
+            <span class="discover-title">${escapeHtml(track.title || 'Unknown')}</span>
+            <span class="discover-artist">${escapeHtml(track.artist || 'Unknown')}</span>
             <span class="discover-type-badge single-badge">Single</span>
           </div>
-          <button class="track-download-btn" data-hash="${group.torrentHash}" title="Download">⬇️</button>
+          <button class="track-download-btn" data-hash="${escapeHtml(group.torrentHash)}" title="Download">⬇️</button>
         </div>`;
     } else {
       // Album card with track list
       const trackListHtml = group.tracks.map(t => `
         <div class="discover-album-track">
-          <span class="discover-album-track-title">${t.title || 'Unknown'}</span>
+          <span class="discover-album-track-title">${escapeHtml(t.title || 'Unknown')}</span>
         </div>
       `).join('');
       return `
-        <div class="discover-card discover-album" data-hash="${group.torrentHash}">
+        <div class="discover-card discover-album" data-hash="${escapeHtml(group.torrentHash)}">
           <div class="discover-album-header">
-            <img class="discover-cover" src="http://127.0.0.1:4567/api/cover/${group.torrentHash}" 
+            <img class="discover-cover" src="http://127.0.0.1:4567/api/cover/${encodeURIComponent(group.torrentHash)}" 
                  onerror="this.src='assets/default_album.png';">
             <div class="discover-info">
-              <span class="discover-title">${group.album || 'Unknown Album'}</span>
-              <span class="discover-artist">${group.artist || 'Unknown'}</span>
+              <span class="discover-title">${escapeHtml(group.album || 'Unknown Album')}</span>
+              <span class="discover-artist">${escapeHtml(group.artist || 'Unknown')}</span>
               <span class="discover-type-badge album-badge">Album · ${group.tracks.length} tracks</span>
             </div>
-            <button class="track-download-btn" data-hash="${group.torrentHash}" title="Download Album">⬇️</button>
+            <button class="track-download-btn" data-hash="${escapeHtml(group.torrentHash)}" title="Download Album">⬇️</button>
           </div>
           <div class="discover-album-tracks">${trackListHtml}</div>
         </div>`;

@@ -1,7 +1,7 @@
 // albumDetail.js
 import { contentDiv } from './domElements.js';
 import { allTracks, refreshAllTracks } from './state.js';
-import { formatTime } from './utils.js';
+import { formatTime, escapeHtml } from './utils.js';
 import { setQueue } from './queue.js';
 import { playTrackById } from './trackPlayback.js';
 import { showTrackMenu } from './trackMenu.js';
@@ -32,12 +32,12 @@ function renderAlbumDetail(artist, album, tracks) {
   const coverUrl = `http://127.0.0.1:4567/api/cover/${firstTrack.torrentHash}`;
 
   const trackListHtml = tracks.map((track, idx) => `
-    <div class="track-item" data-id="${track.id}">
+    <div class="track-item" data-id="${escapeHtml(track.id)}">
       <span class="track-number">${idx+1}</span>
-      <img class="track-album-art" src="http://127.0.0.1:4567/api/cover/${track.torrentHash}" 
+      <img class="track-album-art" src="http://127.0.0.1:4567/api/cover/${encodeURIComponent(track.torrentHash)}" 
            onerror="this.onerror=null; this.src='default_album.png';">
-      <span class="track-title">${track.title}</span>
-      <span class="track-artist">${track.artist}</span>
+      <span class="track-title">${escapeHtml(track.title)}</span>
+      <span class="track-artist">${escapeHtml(track.artist)}</span>
       <span class="track-duration">${formatTime(track.duration)}</span>
       <button class="track-play-btn" data-id="${track.id}">▶</button>
       <button class="track-like-btn" data-id="${track.id}">♡</button>
@@ -51,9 +51,9 @@ function renderAlbumDetail(artist, album, tracks) {
         <img class="album-detail-cover" src="${coverUrl}" onerror="this.src='default_album.png';">
       </div>
       <div class="album-detail-info">
-        <h2>${album}</h2>
-        <h3>${artist}</h3>
-        <p>${firstTrack.year || 'Unknown year'} • ${firstTrack.genre || 'Unknown genre'} • ${tracks.length} tracks</p>
+        <h2>${escapeHtml(album)}</h2>
+        <h3>${escapeHtml(artist)}</h3>
+        <p>${escapeHtml(firstTrack.year || 'Unknown year')} • ${escapeHtml(firstTrack.genre || 'Unknown genre')} • ${tracks.length} tracks</p>
       </div>
       <div class="album-detail-right">
         <div class="track-list">${trackListHtml || '<p style="color:#b3b3b3;">No tracks yet.</p>'}</div>

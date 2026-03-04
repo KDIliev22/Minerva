@@ -1,5 +1,6 @@
 import { contentDiv } from './domElements.js';
 import { showAlbum } from './albumDetail.js';
+import { escapeHtml } from './utils.js';
 
 export async function loadLibraryGrid() {
   try {
@@ -21,11 +22,11 @@ function renderAlbumGrid(albums) {
 
   const gridHtml = albums.map(album => `
     <div class="album-grid-item" data-artist="${album.artist}" data-album="${album.album}" data-cover-id="${album.coverTrackId}">
-      <img class="album-cover" src="http://127.0.0.1:4567/api/cover/${album.coverTrackId}" 
+      <img class="album-cover" src="http://127.0.0.1:4567/api/cover/${encodeURIComponent(album.coverTrackId)}" 
            onerror="this.onerror=null; this.src='default_album.png';">
       <div class="album-info">
-        <div class="album-title">${album.album || 'Unknown Album'}</div>
-        <div class="album-artist">${album.artist || 'Unknown Artist'} • ${album.year || '?'}</div>
+        <div class="album-title">${escapeHtml(album.album || 'Unknown Album')}</div>
+        <div class="album-artist">${escapeHtml(album.artist || 'Unknown Artist')} • ${escapeHtml(album.year || '?')}</div>
         <div class="album-track-count">${album.trackCount} tracks</div>
       </div>
     </div>
