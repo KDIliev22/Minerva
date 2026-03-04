@@ -13,6 +13,9 @@ import org.jupnp.model.types.UDAServiceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -25,9 +28,35 @@ public class UpnpPortMapper implements PortMapper {
         logger.debug("UpnpPortMapper created – service starting asynchronously");
     }
 
+    /**
+     * Resolve the actual LAN IP if the caller passed a wildcard address (0.0.0.0).
+     * Routers reject UPnP AddPortMapping with 0.0.0.0 as NewInternalClient.
+     */
+    private String resolveLanAddress(String localAddr) {
+        if (localAddr == null || "0.0.0.0".equals(localAddr) || "::".equals(localAddr)) {
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.connect(new InetSocketAddress("8.8.8.8", 80));
+                String resolved = socket.getLocalAddress().getHostAddress();
+                logger.info("Resolved wildcard address {} to LAN IP {}", localAddr, resolved);
+                return resolved;
+            } catch (Exception e) {
+                try {
+                    String fallback = InetAddress.getLocalHost().getHostAddress();
+                    logger.info("Resolved wildcard address {} to fallback IP {}", localAddr, fallback);
+                    return fallback;
+                } catch (Exception ex) {
+                    logger.warn("Could not resolve LAN address, keeping {}", localAddr);
+                    return localAddr;
+                }
+            }
+        }
+        return localAddr;
+    }
+
     @Override
     public void mapPort(int port, String localAddr, PortMapProtocol protocol, String description) {
         String proto = protocol == null ? "TCP" : protocol.name();
+        localAddr = resolveLanAddress(localAddr);
         logger.info("Attempting to map {} port {} to {} using UPnP", proto, port, localAddr);
 
         // Give UPnP some time to initialize
