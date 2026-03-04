@@ -9,8 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CacheManager {
+    private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
     private static CacheManager instance;
     private final Path cacheDir;
     private final Map<String, Long> accessTimes;
@@ -30,7 +33,7 @@ public class CacheManager {
         try {
             Files.createDirectories(cacheDir);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to create cache directory", e);
         }
     }
     
@@ -53,7 +56,7 @@ public class CacheManager {
                 try {
                     Files.delete(cachedImage);
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    logger.warn("Failed to delete corrupted cache file", ex);
                 }
             }
         }
@@ -70,7 +73,7 @@ public class CacheManager {
         try {
             return createDefaultCover(artist, albumTitle);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to create default cover", e);
             return null;
         }
     }
@@ -81,7 +84,7 @@ public class CacheManager {
             ImageIO.write(image, "jpg", cacheFile.toFile());
             accessTimes.put(cacheKey, System.currentTimeMillis());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to save image to cache", e);
         }
     }
     
@@ -116,12 +119,12 @@ public class CacheManager {
                      try {
                          Files.delete(path);
                      } catch (IOException e) {
-                         e.printStackTrace();
+                         logger.warn("Failed to delete cache file: {}", path, e);
                      }
                  });
             accessTimes.clear();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to clear cache", e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.minerva.backend;
 
+import com.minerva.StringUtils;
 import com.minerva.library.LibraryManager;
 import com.minerva.model.MusicFile;
 import com.minerva.network.JLibTorrentManager;
@@ -209,7 +210,7 @@ announcer.scheduleAtFixedRate(() -> {
             try {
                 ctx.json(playlistManager.getAllPlaylists());
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error loading playlists", e);
                 ctx.status(500).result("Error loading playlists");
             }
         });
@@ -356,7 +357,7 @@ announcer.scheduleAtFixedRate(() -> {
                 int id = playlistManager.createPlaylist(name, description);
                 ctx.status(201).json(Map.of("id", id));
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error creating playlist", e);
                 ctx.status(500).result("Error creating playlist");
             }
         });
@@ -371,7 +372,7 @@ announcer.scheduleAtFixedRate(() -> {
                     ctx.json(playlist);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error loading playlist", e);
                 ctx.status(500).result("Error loading playlist");
             }
         });
@@ -386,7 +387,7 @@ announcer.scheduleAtFixedRate(() -> {
                 playlistManager.updatePlaylist(id, name, description, iconPath);
                 ctx.status(200).result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error updating playlist", e);
                 ctx.status(500).result("Error updating playlist");
             }
         });
@@ -397,7 +398,7 @@ announcer.scheduleAtFixedRate(() -> {
                 playlistManager.deletePlaylist(id);
                 ctx.status(200).result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error deleting playlist", e);
                 ctx.status(500).result(e.getMessage());
             }
         });
@@ -410,7 +411,7 @@ announcer.scheduleAtFixedRate(() -> {
                 playlistManager.addTrackToPlaylist(id, trackId);
                 ctx.status(200).result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error adding track to playlist", e);
                 ctx.status(500).result("Error adding track to playlist");
             }
         });
@@ -422,7 +423,7 @@ announcer.scheduleAtFixedRate(() -> {
                 playlistManager.removeTrackFromPlaylist(id, trackId);
                 ctx.status(200).result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error removing track from playlist", e);
                 ctx.status(500).result("Error removing track from playlist");
             }
         });
@@ -434,7 +435,7 @@ announcer.scheduleAtFixedRate(() -> {
                 playlistManager.reorderPlaylistTracks(id, trackIds);
                 ctx.status(200).result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error reordering tracks", e);
                 ctx.status(500).result("Error reordering tracks");
             }
         });
@@ -452,11 +453,11 @@ announcer.scheduleAtFixedRate(() -> {
                 return;
             }
             ctx.contentType("audio/mpeg");
+            ctx.header("Content-Length", String.valueOf(file.length()));
             try {
-                byte[] data = Files.readAllBytes(file.toPath());
-                ctx.result(data);
+                ctx.result(new java.io.FileInputStream(file));
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Error streaming file: {}", file.getName(), e);
                 ctx.status(500).result("Error reading file");
             }
         });
@@ -475,11 +476,11 @@ announcer.scheduleAtFixedRate(() -> {
             }
             ctx.contentType("audio/mpeg");
             ctx.header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+            ctx.header("Content-Length", String.valueOf(file.length()));
             try {
-                byte[] data = Files.readAllBytes(file.toPath());
-                ctx.result(data);
+                ctx.result(new java.io.FileInputStream(file));
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Error downloading file: {}", file.getName(), e);
                 ctx.status(500).result("Error reading file");
             }
         });
@@ -501,7 +502,7 @@ announcer.scheduleAtFixedRate(() -> {
                                 ctx.result(data);
                                 return;
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                logger.error("Error reading album art for {}", candidate.getName(), e);
                                 ctx.status(500).result("Error reading album art");
                             }
                         }
@@ -517,7 +518,7 @@ announcer.scheduleAtFixedRate(() -> {
                         ctx.result(imageData);
                         return;
                     } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
+                        logger.warn("Invalid base64 album art data", e);
                     }
                 }
             } else {
@@ -615,20 +616,11 @@ announcer.scheduleAtFixedRate(() -> {
     }
 
     private String sanitizeFileName(String name) {
-        if (name == null) return "unknown";
-        return name.replaceAll("[\\\\/:*?\"<>|]", "_")
-                   .replaceAll("\\s+", "_")
-                   .trim();
+        return StringUtils.sanitizeFileName(name);
     }
 
     private static byte[] hexToBytes(String hex) {
-    int len = hex.length();
-    byte[] out = new byte[len / 2];
-    for (int i = 0; i < len; i += 2) {
-        out[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                             + Character.digit(hex.charAt(i + 1), 16));
-    }
-    return out;
+        return StringUtils.hexToBytes(hex);
     }
 
     public static void main(String[] args) {
