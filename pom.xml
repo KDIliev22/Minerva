@@ -144,24 +144,38 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- UPnP support (optional, but may improve connectivity) -->
-        <dependency>
-    <groupId>org.jupnp</groupId>
-    <artifactId>org.jupnp</artifactId>
-    <version>3.0.2</version>
-</dependency>
-
         <!-- SQLite – still used for playlist persistence (or fallback) -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.42.0.0</version>
         </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <plugins>
+            <!-- Surefire plugin for running tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
             <!-- Compiler plugin (Java 17) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
