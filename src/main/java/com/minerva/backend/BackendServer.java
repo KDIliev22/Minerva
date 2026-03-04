@@ -119,12 +119,16 @@ public class BackendServer {
             try {
                 DHTService dhtService = torrentManager.getDHTService();
                 if (dhtService != null) {
-                    logger.info("DHTService obtained, but announce method unknown.");
+                    // getPeers triggers a DHT lookup + announce_peer for the
+                    // Minerva discovery infohash, making this node visible
+                    // to other Minerva peers and the DHT crawler.
+                    long count = dhtService.getPeers(minervaId).count();
+                    logger.info("DHT announce complete – found {} peers for Minerva infohash", count);
                 } else {
                     logger.warn("DHTService not available – cannot announce");
                 }
             } catch (Exception e) {
-                logger.error("Failed to announce", e);
+                logger.error("Failed to announce on DHT", e);
             }
         }, 1, 30, TimeUnit.MINUTES);
     }
@@ -138,7 +142,7 @@ public class BackendServer {
         }).start("127.0.0.1", port);
 
         app.before(ctx -> {
-            ctx.header("Access-Control-Allow-Origin", "*");
+            ctx.header("Access-Control-Allow-Origin", "http://localhost");
             ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             ctx.header("Access-Control-Allow-Headers", "Content-Type");
         });

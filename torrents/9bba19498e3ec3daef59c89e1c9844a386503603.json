@@ -1,0 +1,107 @@
+{
+  "torrent_id" : "9bba19498e3ec3daef59c89e1c9844a386503603",
+  "torrent_hash" : "9bba19498e3ec3daef59c89e1c9844a386503603",
+  "title" : "Finally Rich",
+  "artist" : "Chief Keef",
+  "album" : "Finally Rich",
+  "genre" : "Rap",
+  "year" : 2012,
+  "bitrate" : 128,
+  "tracks" : [ {
+    "title" : "Love Sosa",
+    "artist" : "Chief Keef",
+    "trackNumber" : "1",
+    "discNumber" : "1",
+    "duration" : 246,
+    "bitrate" : 0,
+    "fileName" : "01_01_Love_Sosa.mp3"
+  }, {
+    "title" : "Hallelujah",
+    "artist" : "Chief Keef",
+    "trackNumber" : "2",
+    "discNumber" : "1",
+    "duration" : 182,
+    "bitrate" : 0,
+    "fileName" : "01_02_Hallelujah.mp3"
+  }, {
+    "title" : "I Don't Like",
+    "artist" : "Chief Keef",
+    "trackNumber" : "3",
+    "discNumber" : "1",
+    "duration" : 294,
+    "bitrate" : 0,
+    "fileName" : "01_03_I_Don't_Like.mp3"
+  }, {
+    "title" : "No Tomorrow",
+    "artist" : "Chief Keef",
+    "trackNumber" : "4",
+    "discNumber" : "1",
+    "duration" : 190,
+    "bitrate" : 0,
+    "fileName" : "01_04_No_Tomorrow.mp3"
+  }, {
+    "title" : "Hate Bein' Sober",
+    "artist" : "Chief Keef",
+    "trackNumber" : "5",
+    "discNumber" : "1",
+    "duration" : 280,
+    "bitrate" : 0,
+    "fileName" : "01_05_Hate_Bein'_Sober.mp3"
+  }, {
+    "title" : "Kay Kay",
+    "artist" : "Chief Keef",
+    "trackNumber" : "6",
+    "discNumber" : "1",
+    "duration" : 188,
+    "bitrate" : 0,
+    "fileName" : "01_06_Kay_Kay.mp3"
+  }, {
+    "title" : "Laughin' To The Bank",
+    "artist" : "Chief Keef",
+    "trackNumber" : "7",
+    "discNumber" : "1",
+    "duration" : 227,
+    "bitrate" : 0,
+    "fileName" : "01_07_Laughin'_To_The_Bank.mp3"
+  }, {
+    "title" : "Diamonds",
+    "artist" : "Chief Keef",
+    "trackNumber" : "8",
+    "discNumber" : "1",
+    "duration" : 186,
+    "bitrate" : 0,
+    "fileName" : "01_08_Diamonds.mp3"
+  }, {
+    "title" : "Ballin'",
+    "artist" : "Chief Keef",
+    "trackNumber" : "9",
+    "discNumber" : "1",
+    "duration" : 219,
+    "bitrate" : 0,
+    "fileName" : "01_09_Ballin'.mp3"
+  }, {
+    "title" : "Understand Me",
+    "artist" : "Chief Keef",
+    "trackNumber" : "10",
+    "discNumber" : "1",
+    "duration" : 244,
+    "bitrate" : 0,
+    "fileName" : "01_10_Understand_Me.mp3"
+  }, {
+    "title" : "3Hunna",
+    "artist" : "Chief Keef",
+    "trackNumber" : "11",
+    "discNumber" : "1",
+    "duration" : 209,
+    "bitrate" : 0,
+    "fileName" : "01_11_3Hunna.mp3"
+  }, {
+    "title" : "Finally Rich",
+    "artist" : "Chief Keef",
+    "trackNumber" : "12",
+    "discNumber" : "1",
+    "duration" : 249,
+    "bitrate" : 0,
+    "fileName" : "01_12_Finally_Rich.mp3"
+  } ]
+}
