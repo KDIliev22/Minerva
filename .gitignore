@@ -32,7 +32,7 @@ cache/
 album_art/
 library/
 torrent_files/
-dht/
+/dht/
 
 # Peer cache (runtime)
 minerva_peers.cache

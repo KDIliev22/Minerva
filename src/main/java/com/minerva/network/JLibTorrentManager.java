@@ -19,6 +19,7 @@ import bt.peerexchange.PeerExchangeModule;
 import bt.peer.lan.LocalServiceDiscoveryModule;
 import com.minerva.DummySelectorModule;
 import com.minerva.MinervaPortMapperModule;
+import com.minerva.dht.PersistentDHTModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
@@ -195,9 +196,6 @@ public class JLibTorrentManager {
         final InetAddress bindAddr = getBindAddress();
         logger.info("LAN address: {}, binding to: {}", lanAddr.getHostAddress(), bindAddr.getHostAddress());
 
-        File dhtStateDir = new File(saveDirectory, "dht");
-        if (!dhtStateDir.exists()) dhtStateDir.mkdirs();
-
         Config config = new Config() {
             @Override public int getAcceptorPort() { return listenPort; }
             @Override public InetAddress getAcceptorAddress() { return bindAddr; }
@@ -214,29 +212,28 @@ public class JLibTorrentManager {
             @Override public int getNumOfHashingThreads() { return 2; }
         };
 
-DHTModule dhtModule = new DHTModule(new DHTConfig() {
-    @Override public boolean shouldUseRouterBootstrap() { return true; }
-    @Override public int getListeningPort() { return dhtPort; }
-    
-    @Override
-    public Collection<InetPeerAddress> getBootstrapNodes() {
-        return Arrays.asList(
-            new InetPeerAddress("dht.transmissionbt.com", 6881),
-            new InetPeerAddress("dht.libtorrent.org", 25401)
-        );
-    }
-    
-    public String getStoragePath() {
-        return dhtStateDir.getAbsolutePath();
-    }
-});
+        DHTModule dhtModule = new DHTModule(new DHTConfig() {
+            @Override public boolean shouldUseRouterBootstrap() { return true; }
+            @Override public int getListeningPort() { return dhtPort; }
 
-        BtRuntimeBuilder builder = BtRuntime.builder(config);
-this.runtime = BtRuntime.builder(config)
+            @Override
+            public Collection<InetPeerAddress> getBootstrapNodes() {
+                return Arrays.asList(
+                    new InetPeerAddress("dht.transmissionbt.com", 6881),
+                    new InetPeerAddress("dht.libtorrent.org", 25401),
+                    new InetPeerAddress("router.bittorrent.com", 6881),
+                    new InetPeerAddress("router.utorrent.com", 6881),
+                    new InetPeerAddress("dht.aelitis.com", 6881)
+                );
+            }
+        });
+
+        this.runtime = BtRuntime.builder(config)
         .module(dhtModule)
         .module(new HttpTrackerModule())
         .module(new PeerExchangeModule())
         .module(new MinervaPortMapperModule())
+        .module(new PersistentDHTModule())
         .module(new DummySelectorModule())
         .build();
 
