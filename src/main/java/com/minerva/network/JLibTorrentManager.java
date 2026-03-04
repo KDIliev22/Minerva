@@ -4,7 +4,6 @@ import bt.Bt;
 import bt.data.Storage;
 import bt.data.file.FileSystemStorage;
 import bt.dht.DHTConfig;
-import bt.dht.DHTModule;
 import bt.dht.DHTService;
 import bt.metainfo.TorrentFile;
 import bt.metainfo.TorrentId;
@@ -212,7 +211,7 @@ public class JLibTorrentManager {
             @Override public int getNumOfHashingThreads() { return 2; }
         };
 
-        DHTModule dhtModule = new DHTModule(new DHTConfig() {
+        DHTConfig dhtConfig = new DHTConfig() {
             @Override public boolean shouldUseRouterBootstrap() { return true; }
             @Override public int getListeningPort() { return dhtPort; }
 
@@ -226,14 +225,13 @@ public class JLibTorrentManager {
                     new InetPeerAddress("dht.aelitis.com", 6881)
                 );
             }
-        });
+        };
 
         this.runtime = BtRuntime.builder(config)
-        .module(dhtModule)
+        .module(new PersistentDHTModule(dhtConfig))
         .module(new HttpTrackerModule())
         .module(new PeerExchangeModule())
         .module(new MinervaPortMapperModule())
-        .module(new PersistentDHTModule())
         .module(new DummySelectorModule())
         .build();
 
