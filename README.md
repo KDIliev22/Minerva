@@ -1,31 +1,29 @@
-# Minerva — Decentralized P2P Music Sharing Platform
+<p align="center">
+  <img src="minerva-electron/assets/minervalogo.png" alt="Minerva" width="200"/>
+</p>
 
-Minerva is a peer-to-peer music sharing desktop application that enables users to share, discover, and stream music directly between peers without a central server. It combines BitTorrent protocol for file distribution with a custom keyword search protocol (MINERVA1) for peer discovery.
+# Minerva
+
+Decentralized P2P music sharing platform. Share, discover and stream music directly between peers — no central server needed.
+
+Built with BitTorrent for file transfer and a custom MINERVA1 protocol for keyword search across the network.
 
 ## Architecture
 
 ```
-┌─────────────────────┐       REST API        ┌─────────────────────┐
-│   Electron UI       │ ◄──────────────────►  │   Java Backend      │
-│   (HTML/CSS/JS)     │   localhost:4567       │   (Javalin REST)    │
-└─────────────────────┘                        └────────┬────────────┘
-                                                        │
-                                        ┌───────────────┼───────────────┐
-                                        │               │               │
-                                   ┌────▼────┐   ┌──────▼──────┐  ┌────▼────┐
-                                   │BitTorrent│   │ MINERVA1    │  │   DHT   │
-                                   │ Engine   │   │ TCP Search  │  │ Crawler │
-                                   │(bt lib)  │   │ (port 4568) │  │  (Go)   │
-                                   └──────────┘   └─────────────┘  └─────────┘
+  Electron UI  <--- REST (localhost:4567) --->  Java Backend
+  (HTML/CSS/JS)                                     |
+                                          +---------+---------+
+                                          |         |         |
+                                       BitTorrent  MINERVA1  DHT Crawler
+                                       (bt lib)    (TCP:4568)   (Go)
 ```
 
-### Components
-
-- **Electron Frontend** — Desktop UI built with HTML5, CSS3, and vanilla JavaScript ES modules. Provides library management, album detail views, playlist management, search/discover, and an audio player.
-- **Java Backend** — Javalin-based REST API server handling library management, torrent creation/seeding, peer search, metadata extraction, and streaming. Entry point: `com.minerva.MainApp`.
-- **BitTorrent Engine** — Based on [atomashpolskiy/bt](https://github.com/atomashpolskiy/bt) v1.10 with patches for Local Service Discovery (LSD) and UPnP port mapping.
-- **MINERVA1 Protocol** — Custom TCP protocol (port 4568) enabling keyword-based search across peers. Peers announce themselves via UDP multicast on LAN.
-- **DHT Crawler** — Go service using `github.com/anacrolix/dht` to discover peers on the BitTorrent DHT network, exposes an HTTP `/peers` endpoint.
+- **Electron Frontend** — HTML5/CSS3/JS desktop UI for library, playlists, search, and playback
+- **Java Backend** — Javalin REST API handling uploads, streaming, torrent management and peer search
+- **BitTorrent Engine** — [atomashpolskiy/bt](https://github.com/atomashpolskiy/bt) v1.10 with LSD and UPnP patches
+- **MINERVA1 Protocol** — custom TCP protocol for keyword search between peers (UDP multicast on LAN)
+- **DHT Crawler** — Go service using `anacrolix/dht` to find peers, exposes HTTP `/peers` endpoint
 
 ## Tech Stack
 
@@ -39,42 +37,6 @@ Minerva is a peer-to-peer music sharing desktop application that enables users t
 | Storage     | SQLite (via JDBC), JSON files                    |
 | Port Mapping| jUPnP 3.0.2 (UPnP/NAT-PMP)                      |
 | Containers  | Docker, docker-compose (multi-node testing)      |
-
-## Project Structure
-
-```
-├── src/main/java/com/minerva/
-│   ├── MainApp.java              # Application entry point
-│   ├── StringUtils.java          # Shared utility methods
-│   ├── backend/
-│   │   └── BackendServer.java    # REST API server (Javalin)
-│   ├── model/
-│   │   ├── Album.java            # Album data model
-│   │   └── MusicFile.java        # Track/music file model
-│   ├── network/
-│   │   ├── JLibTorrentManager.java   # BitTorrent session management
-│   │   ├── TorrentCreator.java       # Torrent file creation
-│   │   ├── TorrentMetadata.java      # Torrent metadata model
-│   │   ├── TorrentValidator.java     # Torrent structure validation
-│   │   └── KeywordSearchServer.java  # MINERVA1 search protocol
-│   ├── storage/
-│   │   ├── CacheManager.java         # Download cache management
-│   │   └── MusicMetadataExtractor.java # Audio metadata extraction
-│   ├── playlist/
-│   │   └── PlaylistManager.java      # Playlist CRUD (JSON-backed)
-│   ├── dht/
-│   │   └── DHTManager.java           # DHT integration
-│   └── library/
-│       └── LibraryManager.java       # Music library management
-├── src/test/java/com/minerva/       # JUnit 5 unit tests
-├── minerva-electron/                 # Electron frontend
-│   ├── js/                           # JavaScript modules
-│   ├── css/                          # Stylesheets (BEM components)
-│   └── index.html                    # Main UI
-├── dht-crawler/                      # Go DHT crawler service
-├── docker-compose.yml                # Multi-node Docker setup
-└── pom.xml                           # Maven build configuration
-```
 
 ## Prerequisites
 
@@ -106,6 +68,7 @@ npm start
 
 ```bash
 cd dht-crawler
+go mod tidy
 go build -o dht-crawler
 ```
 
@@ -134,12 +97,6 @@ This creates two interconnected nodes on a custom bridge network for testing P2P
 ```bash
 mvn test
 ```
-
-56 unit tests covering:
-- `StringUtils` — filename sanitization, hex encoding/decoding
-- `PlaylistManager` — CRUD operations, track management, persistence
-- `MusicFile` / `Album` — model validation, magnet link generation
-- `TorrentMetadata` — serialization, enum behavior, field parsing
 
 ## License
 
